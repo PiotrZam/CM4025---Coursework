@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/PiotrZam/CM4025-EWS/issues"
   },
-  "homepage": "https://github.com/PiotrZam/CM4025-EWS#readme"
+  "homepage": "https://github.com/PiotrZam/CM4025-EWS#readme",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
 }
