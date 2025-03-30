@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/PiotrZam/CM4025-EWS#readme",
   "dependencies": {
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "mongodb": "^6.15.0"
   }
 }

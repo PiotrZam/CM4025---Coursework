@@ -3,6 +3,10 @@ const path = require('path');
 const fs = require('fs');
 const bodyParser = require('body-parser'); // Require the body-parser module
 
+const {MongoClient} = require("mongodb");
+const mongoUri = "mongodb://127.0.0.1:27017";
+const mongoClient = new MongoClient(mongoUri);
+
 const app = express();
 const port = 3000;
 
@@ -44,22 +48,21 @@ app.post('/login', (req, res) => {
     });
 });
 
-app.get('/getPosts', (req, res) => {
-    // Read posts from 'posts.json'
-    fs.readFile('./data/posts.json', 'utf8', (err, data) => {
-        if (err) {
-            console.error('Error reading posts.json:', err.message);
-            return res.status(500).json({ error: 'Error fetching posts' });
-        }
+app.get('/getPosts', async (req, res) => {
+    try {
+        await mongoClient.connect();
+        const dbo = mongoClient.db("whisperedWords");
 
-        try {
-            const posts = JSON.parse(data);
-            res.status(200).json(posts);
-        } catch (error) {
-            console.error('Error parsing posts.json:', error.message);
-            res.status(500).json({ error: 'Error fetching posts' });
-        }
-    });
+        // Retrieve all stories from the "story" collection
+        const stories = await dbo.collection("story").find({}).toArray();
+
+        res.status(200).json(stories); // Send the stories as a JSON response
+    } catch (err) {
+        console.error("Error fetching stories:", err);
+        res.status(500).json({ success: false, error: "Failed to fetch stories" });
+    } finally {
+        await mongoClient.close();
+    }
 });
 
 
@@ -71,44 +74,61 @@ function generateUniqueId() {
     return Math.random().toString(36).substr(2, 9);
 }
 
-app.post('/addPost', (req, res) => {
+app.post('/addPost', async (req, res) => {
     const { title, content } = req.body;
 
     if (!title || !content) {
         return res.status(400).json({ success: false, error: 'Title and content are required' });
     }
 
-    const newPost = {
-        id: generateUniqueId(), // Assign a unique post ID
+    var newStory = {
         author: 'Server Author', // You may modify this to get the actual author from the request
         date: new Date().toLocaleDateString(),
-        title,
-        content,
+        title: title,
+        content: content,
+        genre: 'Unknown',
+        isPublic: '1',
         likes: [],  // Initialize the likes array
         comments: []
     };
 
-    // Read existing posts from 'posts.json'
-    let posts = [];
     try {
-        const postsData = fs.readFileSync('./data/posts.json', 'utf8');
-        posts = JSON.parse(postsData);
-    } catch (error) {
-        console.error('Error reading posts.json:', error.message);
-    }
+        // Connect the client to the server (optional starting in v4.7)
+        await mongoClient.connect();
+        // Establish and verify connection
+        await mongoClient.db("whisperedWords").command({ ping: 1 });
 
-    // Add the new post
-    posts.unshift(newPost);
+        var dbo = mongoClient.db("whisperedWords");
 
-    // Write the updated posts back to 'posts.json'
-    fs.writeFile('./data/posts.json', JSON.stringify(posts, null, 2), (err) => {
-        if (err) {
-            console.error('Error writing to posts.json:', err.message);
-            return res.status(500).json({ success: false, error: 'Error saving post' });
+        var result = await dbo.collection("story").insertOne(newStory, function(err, res) {
+            if (err) {
+                console.log(err); 
+                throw err;
+            }
+        }); 
+
+        if(result.acknowledged)
+        {
+            console.log(`Inserted a new story with ID of ${result.insertedId} `)
+            console.log(newStory)    
+        }
+        else {
+            console.log(`Failed to insert a new story...`);
         }
 
-        res.status(200).json(newPost);
-    });
+
+    } finally {
+        // Ensures that the client will close when you finish/error
+        await mongoClient.close();
+    }
+
+    if(result.acknowledged)
+    {
+        res.status(200).json(newStory);
+    }
+    else {
+        res.status(400).json({ success: false, error: 'Something went wrong. Failed to add a new story' });
+    }
 });
 
 app.post('/likePost', async (req, res) => {
@@ -212,6 +232,37 @@ app.post('/addComment', async (req, res) => {
         res.status(500).json({ success: false, message: 'Internal server error.' });
     }
 });
+
+async function testDatabaseConnection (t, c, a, g = "unknown", p="1")
+{
+    try {
+        // Connect the client to the server (optional starting in v4.7)
+        await mongoClient.connect();
+        // Establish and verify connection
+        await mongoClient.db("whisperedWords").command({ ping: 1 });
+        console.log("Connected successfully to server");
+        console.log('Start the database stuff');
+
+
+        var dbo = mongoClient.db("whisperedWords");
+        var story = { title: t, content: c, author: a, genre: g, isPublic: p };
+        await dbo.collection("story").insertOne(story, function(err, res) {
+            if (err) {
+                console.log(err); 
+                throw err;
+            }
+            console.log("1 story inserted");
+        }); 
+
+        //Write databse Insert/Update/Query code here..
+        console.log('End the database stuff');
+
+
+    } finally {
+        // Ensures that the client will close when you finish/error
+        await mongoClient.close();
+    }
+}
 
 // Start the server
 app.listen(port, () => {

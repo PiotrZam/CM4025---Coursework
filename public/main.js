@@ -32,7 +32,7 @@ $(document).ready(function () {
             data: JSON.stringify({ title, content }),
             success: function (post) {
                     // If the server returns a successful response, add the post to the post wrapper
-                    const newPost = createPostElement(post.id, post.author, post.date, post.title, post.content, post.likes, post.comments);
+                    const newPost = createPostElement(post._id, post.author, post.date, post.title, post.content, post.likes, post.comments);
                     postsWrapper.prepend(newPost);
 
                     // Reset the form and hide it
@@ -69,8 +69,11 @@ function fetchPosts() {
 
             // Add each post to the the wrapper
             posts.forEach(function (post) {
-                const newPost = createPostElement(post.id, post.author, post.date, post.title, post.content, post.likes, post.comments);
-                displayComments(newPost, post.comments);
+                const newPost = createPostElement(post._id, post.author, post.date, post.title, post.content, post.likes, post.comments);
+                if(post.comments != null && post.comments.length > 0)
+                {
+                    displayComments(newPost, post.comments);
+                }
                 postsWrapper.append(newPost);
             });
         },
@@ -80,22 +83,22 @@ function fetchPosts() {
     });
 }
 
-function createPostElement(id, author, date, title, content, likes, comments) {
+function createPostElement(_id, author, date, title, content, likes, comments) {
 
     let likesCount = 0;
-    if(likes !== null) 
+    if(likes != null) 
     {
         likesCount = likes.length
     }
 
     let commentsCount = 0;
-    if (comments !== null) {
+    if (comments != null) {
         commentsCount = comments.length;
     }
 
     const postElement = $("<div>").addClass("post");
     postElement.html(`
-        <input type="hidden" class="post-id" value="${id}">
+        <input type="hidden" class="post-id" value="${_id}">
         <div class="post-header">
             <span class="author">${author}</span>
             <span class="date">${date}</span>
