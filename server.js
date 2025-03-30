@@ -3,12 +3,9 @@ const path = require('path');
 const fs = require('fs');
 const bodyParser = require('body-parser'); // Require the body-parser module
 
-const {MongoClient} = require("mongodb");
 const { ObjectId } = require('mongodb');
 
-
-const mongoUri = "mongodb://127.0.0.1:27017";
-const mongoClient = new MongoClient(mongoUri);
+const { connectToDatabase, mongoClient } = require("./db"); 
 
 const app = express();
 const port = 3000;
@@ -53,8 +50,7 @@ app.post('/login', (req, res) => {
 
 app.get('/getPosts', async (req, res) => {
     try {
-        await mongoClient.connect();
-        const dbo = mongoClient.db("whisperedWords");
+        const dbo = await connectToDatabase();
 
         // Retrieve all stories from the "story" collection
         const stories = await dbo.collection("story").find({}).toArray();
@@ -63,8 +59,6 @@ app.get('/getPosts', async (req, res) => {
     } catch (err) {
         console.error("Error fetching stories:", err);
         res.status(500).json({ success: false, error: "Failed to fetch stories" });
-    } finally {
-        await mongoClient.close();
     }
 });
 
@@ -96,12 +90,7 @@ app.post('/addPost', async (req, res) => {
     };
 
     try {
-        // Connect the client to the server (optional starting in v4.7)
-        await mongoClient.connect();
-        // Establish and verify connection
-        await mongoClient.db("whisperedWords").command({ ping: 1 });
-
-        var dbo = mongoClient.db("whisperedWords");
+        var dbo = await connectToDatabase();
 
         var result = await dbo.collection("story").insertOne(newStory, function(err, res) {
             if (err) {
@@ -120,9 +109,9 @@ app.post('/addPost', async (req, res) => {
         }
 
 
-    } finally {
-        // Ensures that the client will close when you finish/error
-        await mongoClient.close();
+    } catch (err) {
+        console.error("Error adding a story:", err);
+        res.status(500).json({ success: false, error: "Failed to add a story" });
     }
 
     if(result.acknowledged)
@@ -139,8 +128,7 @@ app.post('/likePost', async (req, res) => {
     var { postId, userId } = req.body;
 
     try {
-        await mongoClient.connect();
-        const dbo = mongoClient.db("whisperedWords");
+        const dbo = await connectToDatabase();
 
         // Convert string ID to MongoDB ObjectId
         const story = await dbo.collection("story").findOne({ _id: new ObjectId(postId)});
@@ -167,8 +155,6 @@ app.post('/likePost', async (req, res) => {
     } catch (err) {
         console.error("Error updating likes:", err);
         res.status(500).json({ success: false, error: "Failed to like a story" });
-    } finally {
-        await mongoClient.close();
     }
 });
 
@@ -183,8 +169,7 @@ app.post('/addComment', async (req, res) => {
     };
 
     try {
-        await mongoClient.connect();
-        const dbo = mongoClient.db("whisperedWords");
+        const dbo = await connectToDatabase();
 
         // Convert string ID to MongoDB ObjectId
         const story = await dbo.collection("story").findOne({ _id: new ObjectId(postId)});
@@ -206,41 +191,15 @@ app.post('/addComment', async (req, res) => {
     } catch (err) {
         console.error("Error adding comment:", err);
         res.status(500).json({ success: false, error: "Failed to add a comment" });
-    } finally {
-        await mongoClient.close();
     }
 });
 
-async function testDatabaseConnection (t, c, a, g = "unknown", p="1")
-{
-    try {
-        // Connect the client to the server (optional starting in v4.7)
-        await mongoClient.connect();
-        // Establish and verify connection
-        await mongoClient.db("whisperedWords").command({ ping: 1 });
-        console.log("Connected successfully to server");
-        console.log('Start the database stuff');
-
-
-        var dbo = mongoClient.db("whisperedWords");
-        var story = { title: t, content: c, author: a, genre: g, isPublic: p };
-        await dbo.collection("story").insertOne(story, function(err, res) {
-            if (err) {
-                console.log(err); 
-                throw err;
-            }
-            console.log("1 story inserted");
-        }); 
-
-        //Write databse Insert/Update/Query code here..
-        console.log('End the database stuff');
-
-
-    } finally {
-        // Ensures that the client will close when you finish/error
-        await mongoClient.close();
-    }
-}
+// Graceful Shutdown (Close database Connection on Exit)
+process.on("SIGINT", async () => {
+    await mongoClient.close();
+    console.log("MongoDB Connection Closed");
+    process.exit(0);
+});
 
 // Start the server
 app.listen(port, () => {
