@@ -162,6 +162,7 @@ app.post('/likePost', async (req, res) => {
             return res.status(400).json({ success: false, message: "User has already liked the post." });
         }
 
+        console.log(`Added a new like for story with id: ${story._id}`)
         res.status(200).json(story);
     } catch (err) {
         console.error("Error updating likes:", err);
@@ -172,52 +173,41 @@ app.post('/likePost', async (req, res) => {
 });
 
 app.post('/addComment', async (req, res) => {
+    console.log(req.body);
+    var { postId, userId, date, content } = req.body;
+
+    const newComment = {
+        userId: userId,
+        date: new Date().toISOString(), // Store the current date and time in ISO format
+        content: content
+    };
+
     try {
-        console.log(req.body);
+        await mongoClient.connect();
+        const dbo = mongoClient.db("whisperedWords");
 
-        var { postId, userId, date, content } = req.body;
-        let posts;
+        // Convert string ID to MongoDB ObjectId
+        const story = await dbo.collection("story").findOne({ _id: new ObjectId(postId)});
 
-        try {
-            const postsData = fs.readFileSync('./data/posts.json', 'utf8');
-            posts = JSON.parse(postsData);
-            console.log('READ');
-        } catch (error) {
-            console.error('Error reading posts.json:', error.message);
+        console.log(story);
+
+        if (!story) {
+            return res.status(404).json({ success: false, error: "Story not found" });
         }
 
-        // Find the post by ID
-        var post = posts.find(post => post.id === postId);
-        
-        const newComment = {
-            id: generateUniqueId(), // Assign a unique comment ID
-            postId,
-            userId,
-            date: new Date().toLocaleDateString(),
-            content
-        };
+            // Use $addToSet to ensure userId is added only once
+        const result = await dbo.collection("story").updateOne(
+            { _id: new ObjectId(postId) },
+            { $push: { comments: newComment } }
+        );
 
-        if (post) {
-
-                // Add the user ID to the likes array
-                post.comments.push(newComment);
-
-                // Update the posts array
-                fs.writeFile('./data/posts.json', JSON.stringify(posts, null, 2), (err) => {
-                    if (err) {
-                        console.error('Error adding comment to posts.json:', err.message);
-                        return res.status(500).json({ success: false, error: 'Error Adding Comment' });
-                    }
-            
-                    res.status(200).json(newComment);
-                });
-
-        } else {
-            res.status(404).json({ success: false, message: 'Post not found.' });
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ success: false, message: 'Internal server error.' });
+        console.log(`Added a new comment for story with id: ${story._id}`)
+        res.status(200).json(story);
+    } catch (err) {
+        console.error("Error adding comment:", err);
+        res.status(500).json({ success: false, error: "Failed to add a comment" });
+    } finally {
+        await mongoClient.close();
     }
 });
 
