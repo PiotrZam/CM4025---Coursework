@@ -225,6 +225,9 @@ body {
     color: #666; /* Adjust color for better visibility */
 }
 
+.stars .fa-star {
+    cursor: pointer;
+}
 
 /* Update or add these styles */
 .reactions-container {

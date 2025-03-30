@@ -55,6 +55,20 @@ app.get('/getPosts', async (req, res) => {
         // Retrieve all stories from the "story" collection
         const stories = await dbo.collection("story").find({}).toArray();
 
+        stories.forEach(st => {
+            var numRatings = 0;
+            var averageRating = 0;
+
+            if (st.ratings && st.ratings.length > 0) {
+                numRatings = st.ratings.length;
+                var totalRating = st.ratings.reduce((acc, rating) => acc + rating.rating, 0);
+                averageRating = totalRating / numRatings;
+            }
+            
+            st.numRatings = numRatings;
+            st.averageRating = averageRating;
+        });
+
         res.status(200).json(stories); // Send the stories as a JSON response
     } catch (err) {
         console.error("Error fetching stories:", err);
@@ -155,6 +169,57 @@ app.post('/likePost', async (req, res) => {
     } catch (err) {
         console.error("Error updating likes:", err);
         res.status(500).json({ success: false, error: "Failed to like a story" });
+    }
+});
+
+app.post('/rateStory', async (req, res) => {
+    console.log(req.body);
+    var { storyId, userId, rating } = req.body;
+
+    console.log(req.body);
+
+    // Validate input
+    if (!userId || !storyId || !rating || rating < 1 || rating > 5) {
+        return res.status(400).json({ success: false, error: "Invalid input. Please provide a valid userId, storyId, and rating between 1 and 5." });
+    }
+
+    try {
+        const dbo = await connectToDatabase();
+
+        // Convert string ID to MongoDB ObjectId
+        const story = await dbo.collection("story").findOne({ _id: new ObjectId(storyId)});
+
+        if (!story) {
+            return res.status(404).json({ success: false, error: "Story not found" });
+        }
+
+        // If the ratings array doesn't exist, initialize it
+        if (!story.ratings) {
+            story.ratings = [];
+        }
+
+        // Check if the user has already rated the story
+        const existingRating = story.ratings.find(rating => rating.userId === userId);
+        
+        if (existingRating) {
+            // If user has already rated, update the rating
+            await dbo.collection("story").updateOne(
+                { _id: new ObjectId(storyId), "ratings.userId": userId },
+                { $set: { "ratings.$.rating": rating } }
+            );
+            return res.status(200).json({ success: true, message: "Rating updated successfully." });
+        } else {
+            // If the user hasn't rated yet, push the new rating
+            await dbo.collection("story").updateOne(
+                { _id: new ObjectId(storyId) },
+                { $push: { ratings: { userId: userId, rating: rating } } }
+            );
+            console.log(`Added a new rating of ${rating} for story with id: ${story._id}`)
+            res.status(200).json(story);
+        }
+    } catch (err) {
+        console.error("Error adding a rating:", err);
+        res.status(500).json({ success: false, error: "Failed to add a rating" });
     }
 });
 

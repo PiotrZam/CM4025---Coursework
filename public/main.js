@@ -1,5 +1,5 @@
 // main.js
-const userId = '1234';
+const userId = '2345';
 const addPostButton = $("#add-post-button");
 const postForm = $("#post-form");
 const dashboard = $(".dashboard");
@@ -8,6 +8,13 @@ const postsWrapper = $("#posts-wrapper");
 $(document).ready(function () {
      // Fetch posts when the page is loaded or refreshed
      fetchPosts();
+
+    // Attach event delegation to the parent container
+    $(postsWrapper).on("click", ".fa-star", function () {
+        console.log("Clicked to rate!!!");
+        rateStory(this);
+    });
+
 
     addPostButton.on("click", function () {
         // Blur the background
@@ -32,7 +39,7 @@ $(document).ready(function () {
             data: JSON.stringify({ title, content }),
             success: function (post) {
                     // If the server returns a successful response, add the post to the post wrapper
-                    const newPost = createPostElement(post._id, post.author, post.date, post.title, post.content, post.likes, post.comments);
+                    const newPost = createPostElement(post._id, post.author, post.date, post.title, post.content, post.likes, 0, 0, post.comments);
                     postsWrapper.prepend(newPost);
 
                     // Reset the form and hide it
@@ -69,7 +76,7 @@ function fetchPosts() {
 
             // Add each post to the the wrapper
             posts.forEach(function (post) {
-                const newPost = createPostElement(post._id, post.author, post.date, post.title, post.content, post.likes, post.comments);
+                const newPost = createPostElement(post._id, post.author, post.date, post.title, post.content, post.likes, post.numRatings, post.averageRating, post.comments);
                 if(post.comments != null && post.comments.length > 0)
                 {
                     displayComments(newPost, post.comments);
@@ -83,18 +90,21 @@ function fetchPosts() {
     });
 }
 
-function createPostElement(_id, author, date, title, content, likes, comments) {
+function createPostElement(_id, author, date, title, content, likes, numRatings, averageRating, comments) {
 
-    let likesCount = 0;
-    if(likes != null) 
-    {
-        likesCount = likes.length
-    }
+    // let likesCount = 0;
+    // if(likes != null) 
+    // {
+    //     likesCount = likes.length
+    // }
 
     let commentsCount = 0;
     if (comments != null) {
         commentsCount = comments.length;
     }
+
+    //let averageRating = 2.5;
+    let numRatingsHTML = `<p class="num-rating">Ratings No: ${numRatings}</p>`
 
     const postElement = $("<div>").addClass("post");
     postElement.html(`
@@ -106,32 +116,36 @@ function createPostElement(_id, author, date, title, content, likes, comments) {
         <h2 class="title">${title}</h2>
         <p class="contents">${content}</p>
 
-    <div class="reactions-container">
-        <div class="like-container">
-            <button class="like-button" onclick="likePost(this)">
-                <i class="far fa-thumbs-up"></i> Like
-            </button>
-            <div class="likesCount">
-                <p class="likesCountText">${likesCount}</p>
+        <div class="reactions-container">
+            <div class="rating-container">
+                <p>Rate this story:</p>
+                <div class="stars">
+                    <i class="far fa-star" data-value="1"></i>
+                    <i class="far fa-star" data-value="2"></i>
+                    <i class="far fa-star" data-value="3"></i>
+                    <i class="far fa-star" data-value="4"></i>
+                    <i class="far fa-star" data-value="5"></i>
+                </div>
+                <p class="average-rating">Average Rating: ${(numRatings>0) ? averageRating.toFixed(1) : 'No ratings yet'}</p>
+                ${(numRatings>0) ? numRatingsHTML : ''}
+            </div>
+            <div class="comment-container">
+                <button class="comment-button" onclick="toggleComments(this)">
+                    <i class="far fa-comment"></i> Comment
+                </button>
+                <div class="commentsCount">
+                    <p class="commentsCountText">${commentsCount}</p>
+                </div>
             </div>
         </div>
-        <div class="comment-container">
-            <button class="comment-button" onclick="toggleComments(this)">
-                <i class="far fa-comment"></i> Comment
-            </button>
-            <div class="commentsCount">
-                <p class="commentsCountText">${commentsCount}</p>
-            </div>
+
+        <div class="add-comment-form" style="display: none;">
+                    <textarea class="comment-textarea" placeholder="Add a comment"></textarea>
+                    <button class="add-comment-button" onclick="addComment(this)">Post</button>
         </div>
-    </div>
 
-    <div class="add-comment-form" style="display: none;">
-                <textarea class="comment-textarea" placeholder="Add a comment"></textarea>
-                <button class="add-comment-button" onclick="addComment(this)">Post</button>
-    </div>
-
-    <div class="comments-section">
-    </div>
+        <div class="comments-section">
+        </div>
     `);
 
     return postElement;
@@ -259,5 +273,35 @@ function displayComments(postElement, comments) {
     comments.forEach(comment => {
         let commentDiv = generateCommentHTML(comment);
         commentsSection.append(commentDiv);
+    });
+}
+
+function rateStory(starElement) {
+    var postElement = starElement.closest('.post');
+    var storyId = postElement.querySelector('.post-id').value;
+    const rating = parseInt(starElement.dataset.value);
+
+    console.log("Called rateStory!");
+
+    fetch("/rateStory", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ storyId, userId, rating })
+    })
+    .then(response => response.json())
+    .then(data => {
+        // document.querySelector(".average-rating").innerText = `Average Rating: ${data.averageRating.toFixed(1)}`;
+        highlightStars(starElement.parentNode, rating);
+    })
+    .catch(error => console.error("Error rating story:", error));
+}
+
+function highlightStars(container, rating) {
+    container.querySelectorAll("i").forEach(star => {
+        star.classList.remove("fas");
+        star.classList.add("far");
+        if (parseInt(star.dataset.value) <= rating) {
+            star.classList.add("fas");
+        }
     });
 }
