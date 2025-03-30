@@ -4,6 +4,9 @@ const fs = require('fs');
 const bodyParser = require('body-parser'); // Require the body-parser module
 
 const {MongoClient} = require("mongodb");
+const { ObjectId } = require('mongodb');
+
+
 const mongoUri = "mongodb://127.0.0.1:27017";
 const mongoClient = new MongoClient(mongoUri);
 
@@ -132,54 +135,39 @@ app.post('/addPost', async (req, res) => {
 });
 
 app.post('/likePost', async (req, res) => {
+    console.log(req.body);
+    var { postId, userId } = req.body;
+
     try {
-        console.log(req.body);
+        await mongoClient.connect();
+        const dbo = mongoClient.db("whisperedWords");
 
-        var { postId, userId } = req.body;
-        let posts;
+        // Convert string ID to MongoDB ObjectId
+        const story = await dbo.collection("story").findOne({ _id: new ObjectId(postId)});
 
-        try {
-            const postsData = fs.readFileSync('./data/posts.json', 'utf8');
-            posts = JSON.parse(postsData);
-            console.log('READ');
-        } catch (error) {
-            console.error('Error reading posts.json:', error.message);
+        console.log(story);
+
+        if (!story) {
+            return res.status(404).json({ success: false, error: "Story not found" });
         }
 
-        // Find the post by ID
-        var post = posts.find(post => post.id === postId);
-        console.log(post);
+            // Use $addToSet to ensure userId is added only once
+        const result = await dbo.collection("story").updateOne(
+            { _id: new ObjectId(postId) },
+            { $addToSet: { likes: userId } } // Adds userId to likes array if not already present
+        );
 
-        if (post) {
-            // Check if the user has already liked the post
-            if
-            // Disabling for demo: User can like a post infinite nr of times  
-            //(!post.likes.includes(userId)) 
-            (true)
-            {
-                // Add the user ID to the likes array
-                post.likes.push(userId);
-
-                // Update the posts array
-                fs.writeFile('./data/posts.json', JSON.stringify(posts, null, 2), (err) => {
-                    if (err) {
-                        console.error('Error adding like to posts.json:', err.message);
-                        return res.status(500).json({ success: false, error: 'Error Liking Post' });
-                    }
-            
-                    res.status(200).json({ success: true, message: 'Post liked successfully.' });
-                });
-
-               // res.json({ success: true, message: 'Post liked successfully.' });
-            } else {
-                res.status(400).json({ success: false, message: 'User has already liked the post.' });
-            }
-        } else {
-            res.status(404).json({ success: false, message: 'Post not found.' });
+        if (result.modifiedCount === 0) {
+            console.log("User has already liked this story!")
+            return res.status(400).json({ success: false, message: "User has already liked the post." });
         }
-    } catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ success: false, message: 'Internal server error.' });
+
+        res.status(200).json(story);
+    } catch (err) {
+        console.error("Error updating likes:", err);
+        res.status(500).json({ success: false, error: "Failed to like a story" });
+    } finally {
+        await mongoClient.close();
     }
 });
 
