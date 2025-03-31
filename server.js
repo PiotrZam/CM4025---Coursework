@@ -94,7 +94,7 @@ function generateUniqueId() {
 }
 
 app.post('/addPost', async (req, res) => {
-    const { title, content } = req.body;
+    const { title, content, genre } = req.body;
 
     if (!title || !content) {
         return res.status(400).json({ success: false, error: 'Title and content are required' });
@@ -105,7 +105,7 @@ app.post('/addPost', async (req, res) => {
         date: new Date().toLocaleDateString(),
         title: title,
         content: content,
-        genre: 'Unknown',
+        genre: genre,
         isPublic: '1',
         likes: [],  // Initialize the likes array
         comments: []

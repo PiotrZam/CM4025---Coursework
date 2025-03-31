@@ -9,6 +9,9 @@ $(document).ready(function () {
      // Fetch posts when the page is loaded or refreshed
      fetchPosts();
 
+     // Populate list of genres
+     populateGenres();
+
     // Attach event delegation to the parent container
     $(postsWrapper).on("click", ".fa-star", function () {
         console.log("Clicked to rate!!!");
@@ -30,16 +33,29 @@ $(document).ready(function () {
         // Get values from the form
         const title = $("#post-title").val();
         const content = $("#post-content").val();
+        const genre = $("#post-genre").val();
+
+        console.log(`Genre: ${genre}`);
 
         // Send the AJAX request using jQuery
         $.ajax({
             url: "/addPost",
             type: "POST",
             contentType: "application/json",
-            data: JSON.stringify({ title, content }),
+            data: JSON.stringify({ title, content, genre}),
             success: function (post) {
                     // If the server returns a successful response, add the post to the post wrapper
-                    const newPost = createPostElement(post._id, post.author, post.date, post.title, post.content, post.likes, 0, 0, post.comments);
+                    const newPost = createPostElement(
+                        post._id, 
+                        post.author,
+                        post.genre,
+                        post.date, 
+                        post.title, 
+                        post.content, 
+                        0, // numRatings 
+                        0, //averageRating
+                        0 // comments
+                    );
                     postsWrapper.prepend(newPost);
 
                     // Reset the form and hide it
@@ -80,7 +96,16 @@ function fetchPosts() {
 
             // Add each post to the the wrapper
             posts.forEach(function (post) {
-                var newPost = createPostElement(post._id, post.author, post.date, post.title, post.content, post.likes, post.numRatings, post.averageRating, post.thisUserRating, post.comments);
+                var newPost = createPostElement(
+                    _id = post._id, 
+                    author =  post.author, 
+                    genre = post.genre,
+                    date = post.date, 
+                    title = post.title, 
+                    content =  post.content, 
+                    numRatings =  post.numRatings, 
+                    averageRating = post.averageRating, 
+                    comments = post.comments);
                 console.log(post.thisUserRating);
 
                 //Highlight stars if ratings was given
@@ -106,13 +131,7 @@ function fetchPosts() {
     });
 }
 
-function createPostElement(_id, author, date, title, content, likes, numRatings, averageRating, comments) {
-
-    // let likesCount = 0;
-    // if(likes != null) 
-    // {
-    //     likesCount = likes.length
-    // }
+function createPostElement(_id, author, genre, date, title, content, numRatings, averageRating, comments) {
 
     let commentsCount = 0;
     if (comments != null) {
@@ -127,6 +146,7 @@ function createPostElement(_id, author, date, title, content, likes, numRatings,
         <input type="hidden" class="post-id" value="${_id}">
         <div class="post-header">
             <span class="author">${author}</span>
+            <span class="genre">${genre}</span>
             <span class="date">${date}</span>
         </div>
         <h2 class="title">${title}</h2>
@@ -319,5 +339,33 @@ function highlightStars(container, rating) {
         if (parseInt(star.dataset.value) <= rating) {
             star.classList.add("fas");
         }
+    });
+}
+
+function populateGenres() {
+    const genres = [
+        'Fiction',
+        'Drama',
+        'Mystery',
+        'Horror',
+        'Romance',
+        'Comedy',
+        'Fantasy',
+        'Sci-Fi',
+        'Thriller',
+        'Other'
+    ];
+    
+
+    // Get the genre select element using jQuery
+    const genreSelect = $('#post-genre');
+
+    // Clear any existing options before appending new ones
+    genreSelect.empty();
+
+    // Populate the select element with genre options using jQuery
+    genres.forEach(genre => {
+        const option = $('<option></option>').val(genre).text(genre);
+        genreSelect.append(option);
     });
 }
