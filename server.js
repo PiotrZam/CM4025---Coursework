@@ -49,6 +49,7 @@ app.post('/login', (req, res) => {
 });
 
 app.get('/getPosts', async (req, res) => {
+    const { userId } = req.query;
     try {
         const dbo = await connectToDatabase();
 
@@ -58,15 +59,22 @@ app.get('/getPosts', async (req, res) => {
         stories.forEach(st => {
             var numRatings = 0;
             var averageRating = 0;
+            var thisUserRating = 0;
 
             if (st.ratings && st.ratings.length > 0) {
                 numRatings = st.ratings.length;
                 var totalRating = st.ratings.reduce((acc, rating) => acc + rating.rating, 0);
                 averageRating = totalRating / numRatings;
+
+                // Find the rating for the specific userId
+                const userRating = st.ratings.find(rating => rating.userId === userId);
+
+                thisUserRating = userRating ? userRating.rating : 0;
             }
             
             st.numRatings = numRatings;
             st.averageRating = averageRating;
+            st.thisUserRating = thisUserRating;
         });
 
         res.status(200).json(stories); // Send the stories as a JSON response

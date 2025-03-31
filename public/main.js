@@ -65,9 +65,13 @@ $(document).ready(function () {
 // End of document.ready
 
 function fetchPosts() {
+    var data = {
+        userId: userId
+    };
+
     // Fetch posts from the server using jQuery AJAX
     $.ajax({
-        url: "/getPosts",
+        url: `/getPosts?userId=${userId}`,
         type: "GET",
         dataType: "json",
         success: function (posts) {
@@ -76,7 +80,19 @@ function fetchPosts() {
 
             // Add each post to the the wrapper
             posts.forEach(function (post) {
-                const newPost = createPostElement(post._id, post.author, post.date, post.title, post.content, post.likes, post.numRatings, post.averageRating, post.comments);
+                var newPost = createPostElement(post._id, post.author, post.date, post.title, post.content, post.likes, post.numRatings, post.averageRating, post.thisUserRating, post.comments);
+                console.log(post.thisUserRating);
+
+                //Highlight stars if ratings was given
+                const starsElement = newPost.find('.stars').first();
+                if(post.thisUserRating > 0)
+                    {
+                        //convert jquery element to html element
+                        starsHtml = starsElement.get(0);
+                        // Make sure stars are highlighter in line with user's rating
+                        highlightStars(starsHtml, post.thisUserRating);
+                    }
+
                 if(post.comments != null && post.comments.length > 0)
                 {
                     displayComments(newPost, post.comments);
