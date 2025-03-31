@@ -305,7 +305,7 @@ function generateCommentHTML(comment) {
     const commentDiv = $('<div>').addClass('comment');
     const commentAuthor = $('<span>').addClass('comment-author').text(comment.userId);
     const commentDate = $('<span>').addClass('comment-date').text(comment.date);
-    const commentContent = $('<p>').addClass('comment-content').text(comment.content);
+    const commentContent = $('<p>').addClass('comment-content').text(he.escape(comment.content));
 
     commentDiv.append(commentAuthor, commentDate, commentContent);
     return commentDiv;

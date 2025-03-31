@@ -3,8 +3,11 @@ const path = require('path');
 const fs = require('fs');
 const bodyParser = require('body-parser'); // Require the body-parser module
 const multer = require('multer');   // for uploading images
+
 const xss = require('xss');
 const he = require('he');
+const validator = require('validator');
+
 
 const { ObjectId } = require('mongodb');
 
@@ -20,7 +23,10 @@ const storage = multer.diskStorage({
     }
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({ 
+    storage: storage, 
+    limits: {fileSize: 5 * 1024 * 1024}
+});
 
 const app = express();
 const port = 3000;
@@ -38,6 +44,15 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 //Allow static access to uploaded images
 app.use('/uploads', express.static('uploads'));
+
+function generateUniqueId() {
+    // Generate a unique ID (you can use a more sophisticated method if needed)
+    return Math.random().toString(36).substr(2, 9);
+}
+
+function countWords(str) {
+    return str.split(/\s+/).filter(Boolean).length;  // Split by whitespace and filter out empty strings
+}
 
 // Define a route for the login endpoint
 app.post('/login', (req, res) => {
@@ -121,18 +136,33 @@ app.get('/getPosts', async (req, res) => {
 });
 
 
-function generateUniqueId() {
-    // Generate a unique ID (you can use a more sophisticated method if needed)
-    return Math.random().toString(36).substr(2, 9);
-}
-
 app.post('/addPost', upload.single('image'), async (req, res) => {
 
     const { title, content, genre } = req.body;
+    const wordLimit = 500;
 
+    //#region validation: 
     if (!title || !content) {
         return res.status(400).json({ success: false, error: 'Title and content are required' });
     }
+
+    if (!validator.isLength(title, { min: 1, max: 100 }))
+        return res.status(400).json({ error: 'Title must be between 1 and 100 characters.' });
+
+    if (!validator.isLength(content, { min: 5, max: 5000 }))
+        return res.status(400).json({ error: 'Content must be between 5 and 5000 characters.' });
+
+    let wordCount = countWords(content);
+    console.log(`This story has ${wordCount} words`);
+
+    if(wordCount > wordLimit)
+        return res.status(400).json({ error: `Content must be under ${wordLimit} words.` });
+
+    // Multer error handling (file size/type validation)
+    if (req.fileValidationError) {
+        return res.status(400).json({ success: false, error: req.fileValidationError });
+    }
+    //#endregion validation
 
     // Get image path if an image was uploaded
     const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
@@ -278,10 +308,15 @@ app.post('/addComment', async (req, res) => {
     console.log(req.body);
     var { postId, userId, date, content } = req.body;
 
+    if (!validator.isLength(content, { min: 1, max: 250 }))
+        return res.status(400).json({ error: 'Content must be between 1 and 250 characters.' });
+
+    const sanitizedContent = xss(content);
+
     const newComment = {
         userId: userId,
         date: new Date().toISOString(), // Store the current date and time in ISO format
-        content: content
+        content: sanitizedContent
     };
 
     try {
