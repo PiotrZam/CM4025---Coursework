@@ -1,6 +1,8 @@
+require('dotenv').config();
+
 const {MongoClient} = require("mongodb");
 
-const mongoUri = "mongodb://127.0.0.1:27017";
+const mongoUri = process.env.MONGO_URI;
 const mongoClient = new MongoClient(mongoUri);
 const dbName = "whisperedWords";
 

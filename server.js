@@ -3,6 +3,8 @@ const path = require('path');
 const fs = require('fs');
 const bodyParser = require('body-parser'); // Require the body-parser module
 const multer = require('multer');   // for uploading images
+const axios = require('axios'); 
+const dotenv = require('dotenv').config();
 
 const xss = require('xss');
 const he = require('he');
@@ -29,7 +31,7 @@ const upload = multer({
 });
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT;
 
 // Set up static file serving for the "public" directory
 app.use(express.static(path.join(__dirname, 'public')));
@@ -38,6 +40,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+const RECAPTCHA_API_URL = 'https://www.google.com/recaptcha/api/siteverify'
 
 ///////////////////////////////////////////////////////////////////////////////////
 // Routes below:
@@ -138,7 +141,7 @@ app.get('/getPosts', async (req, res) => {
 
 app.post('/addPost', upload.single('image'), async (req, res) => {
 
-    const { title, content, genre } = req.body;
+    const { title, content, genre, recaptcha_token } = req.body;
     const wordLimit = 500;
 
     //#region validation: 
@@ -161,6 +164,25 @@ app.post('/addPost', upload.single('image'), async (req, res) => {
     // Multer error handling (file size/type validation)
     if (req.fileValidationError) {
         return res.status(400).json({ success: false, error: req.fileValidationError });
+    }
+
+    //reCAPTCHA human verification
+    try {
+        // Verify the reCAPTCHA token with Google's API
+        const response = await axios.post(RECAPTCHA_API_URL, null, {
+            params: {
+                secret: process.env.RECAPTCHA_SECRET_KEY,
+                response: recaptcha_token
+            }
+        });
+
+        // Check if the reCAPTCHA verification was successful
+        if (!response.data.success) {
+            res.status(400).send('reCAPTCHA verification failed. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error verifying reCAPTCHA:', error);
+        res.status(500).send('Error during reCAPTCHA verification');
     }
     //#endregion validation
 

@@ -32,6 +32,15 @@ $(document).ready(function () {
     
         // Create FormData object
         let formData = new FormData();
+
+        // Get reCAPTCHA token
+        var recaptchaToken = grecaptcha.getResponse();
+
+        // If the reCAPTCHA token is empty, it means the user hasn't completed the reCAPTCHA challenge
+        if (!recaptchaToken) {
+            alert("Please complete the reCAPTCHA.");
+            return;
+        }
     
         // Get values from the form
         formData.append("title", $("#post-title").val());
@@ -43,6 +52,9 @@ $(document).ready(function () {
         if (imageFile) {
             formData.append("image", imageFile);
         }
+
+        // Append the reCAPTCHA token to the form data
+        formData.append("recaptcha_token", recaptchaToken);
     
         // Send AJAX request using FormData
         $.ajax({
@@ -305,7 +317,7 @@ function generateCommentHTML(comment) {
     const commentDiv = $('<div>').addClass('comment');
     const commentAuthor = $('<span>').addClass('comment-author').text(comment.userId);
     const commentDate = $('<span>').addClass('comment-date').text(comment.date);
-    const commentContent = $('<p>').addClass('comment-content').text(he.escape(comment.content));
+    const commentContent = $('<p>').addClass('comment-content').text(he.decode(comment.content));
 
     commentDiv.append(commentAuthor, commentDate, commentContent);
     return commentDiv;
