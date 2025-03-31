@@ -18,6 +18,7 @@
   "homepage": "https://github.com/PiotrZam/CM4025-EWS#readme",
   "dependencies": {
     "axios": "^1.8.4",
+    "bcryptjs": "^3.0.2",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "he": "^1.2.0",

@@ -5,6 +5,7 @@ const bodyParser = require('body-parser'); // Require the body-parser module
 const multer = require('multer');   // for uploading images
 const axios = require('axios'); 
 const dotenv = require('dotenv').config();
+const bcrypt = require('bcryptjs');
 
 const xss = require('xss');
 const he = require('he');
@@ -40,13 +41,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+//Allow static access to uploaded images
+app.use('/uploads', express.static('uploads'));
+
 const RECAPTCHA_API_URL = 'https://www.google.com/recaptcha/api/siteverify'
 
 ///////////////////////////////////////////////////////////////////////////////////
-// Routes below:
-
-//Allow static access to uploaded images
-app.use('/uploads', express.static('uploads'));
+// Functions below:
 
 function generateUniqueId() {
     // Generate a unique ID (you can use a more sophisticated method if needed)
@@ -56,6 +57,77 @@ function generateUniqueId() {
 function countWords(str) {
     return str.split(/\s+/).filter(Boolean).length;  // Split by whitespace and filter out empty strings
 }
+
+///////////////////////////////////////////////////////////////////////////////////
+// Routes below:
+
+// Sign Up Endpoint
+app.post('/signUp', async (req, res) => {
+    const { username, password, recaptchaResponse } = req.body;
+
+    console.log(req.body)
+
+    //#region Input validation
+    if (!username || !password) {
+        return res.status(400).json({ error: 'Username and password are required' });
+    }
+
+    if (!validator.isLength(username, { min: 3, max: 20 })) {
+        return res.status(400).json({ error: 'Username must be between 3 and 20 characters' });
+    }
+
+    const usernameRegex = /^[a-zA-Z][a-zA-Z0-9_-]*$/;
+    if (!usernameRegex.test(username)) {
+        return res.status(400).json({ error: 'Username must begin with a letter, and can only contain letters, numbers, underscores, and hyphens.' });
+    }
+
+    if (!validator.isLength(password, { min: 6, max: 20 })) {
+        return res.status(400).json({ error: 'Password must be between 6 and 20 characters' });
+    }
+
+    //reCAPTCHA human verification
+    try {
+        // Verify the reCAPTCHA token with Google's API
+        const response = await axios.post(RECAPTCHA_API_URL, null, {
+            params: {
+                secret: process.env.RECAPTCHA_SECRET_KEY,
+                response: recaptchaResponse
+            }
+        });
+
+        // Check if the reCAPTCHA verification was successful
+        if (!response.data.success) {
+            res.status(400).send('reCAPTCHA verification failed. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error verifying reCAPTCHA:', error);
+        res.status(500).send('Error during reCAPTCHA verification');
+    }
+    //#endregion Input Validation
+
+    var dbo = await connectToDatabase();
+
+    // Check if the username already exists
+    const existingUser = await dbo.collection('users').findOne({ username });
+    if (existingUser) {
+        return res.status(400).json({ error: 'Username is already taken' });
+    }
+
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Save the new user in the database
+    const newUser = { username, password: hashedPassword };
+    console.log(newUser)
+
+    try {
+        await dbo.collection('users').insertOne(newUser);
+        res.status(200).json({ message: 'Account created successfully' });
+    } catch (error) {
+        console.error('Error creating user:', error);
+        res.status(500).json({ error: 'Failed to create account' });
+    }
+});
 
 // Define a route for the login endpoint
 app.post('/login', (req, res) => {

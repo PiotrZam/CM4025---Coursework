@@ -22,7 +22,28 @@
         <a href="login.html"><i class="fa-solid fa-user"></i></a>
     </nav>
 
-    <div id="login-form-container">
+    <div id="sign-up-form-container">
+        <form id="sign-up-form">
+            <h2>Create an Account</h2>
+            
+            <div class="input-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" placeholder="Enter your username" required>
+            </div>
+    
+            <div class="input-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+            </div>
+    
+            <div class="g-recaptcha" data-sitekey="6LepqQUrAAAAAB1rEuV0ZOcTjeNbXgCqUd4NtC9E"></div>
+    
+            <button type="submit">Sign Up</button>
+        </form>
+    </div>
+    
+
+    <!-- <div id="login-form-container">
         <form id="login-form">
             <h2>Login</h2>
             <div class="input-group">
@@ -37,11 +58,12 @@
     
             <button type="submit">Login</button>
         </form>
-    </div>
+    </div> -->
     
 
     </body>
     <script src="https://cdn.jsdelivr.net/npm/he@1.2.0/he.min.js"></script>
     <script src="main.js"></script>
+    <script src="login.js"></script>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </html>
