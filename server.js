@@ -3,6 +3,8 @@ const path = require('path');
 const fs = require('fs');
 const bodyParser = require('body-parser'); // Require the body-parser module
 const multer = require('multer');   // for uploading images
+const xss = require('xss');
+const he = require('he');
 
 const { ObjectId } = require('mongodb');
 
@@ -104,6 +106,11 @@ app.get('/getPosts', async (req, res) => {
             } else {
                 st.imageUrl = "";
             }
+
+            if(st.genre == null || st.genre == undefined)
+            {
+                st.genre = "Unknown";
+            }
         });
 
         res.status(200).json(stories); // Send the stories as a JSON response
@@ -130,13 +137,16 @@ app.post('/addPost', upload.single('image'), async (req, res) => {
     // Get image path if an image was uploaded
     const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
-    console.log(imageUrl);
+    // Sanitize input 
+    const sanitizedTitle = xss(title);
+    const sanitizedContent = xss(content);
+
 
     var newStory = {
         author: 'Server Author', // You may modify this to get the actual author from the request
         date: new Date().toLocaleDateString(),
-        title: title,
-        content: content,
+        title: sanitizedTitle,
+        content: sanitizedContent,
         genre: genre,
         imageUrl,
         isPublic: '1',

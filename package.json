@@ -18,7 +18,9 @@
   "homepage": "https://github.com/PiotrZam/CM4025-EWS#readme",
   "dependencies": {
     "express": "^4.21.2",
+    "he": "^1.2.0",
     "mongodb": "^6.15.0",
-    "multer": "^1.4.5-lts.2"
+    "multer": "^1.4.5-lts.2",
+    "xss": "^1.0.15"
   }
 }

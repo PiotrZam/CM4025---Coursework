@@ -152,15 +152,15 @@ function createPostElement(_id, author, genre, date, title, content, numRatings,
     postElement.html(`
         <input type="hidden" class="post-id" value="${_id}">
         <div class="post-header">
-            <span class="author">${author}</span>
-            <span class="genre">${genre}</span>
+            <span class="author">${he.escape(author)}</span>
+            <span class="genre">${he.escape(genre)}</span>
             <span class="date">${date}</span>
         </div>
 
-        <h2 class="title">${title}</h2>
+        <h2 class="title">${he.escape(title)}</h2>
 
         ${imageUrl ? `<img src="${imageUrl}" alt="Story Image" class="post-image">` : ''}
-        <p class="contents">${content}</p>
+        <p class="contents">${he.escape(content)}</p>
 
         <div class="reactions-container">
             <div class="rating-container">
