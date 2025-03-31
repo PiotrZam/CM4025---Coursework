@@ -129,35 +129,35 @@ app.post('/signUp', async (req, res) => {
     }
 });
 
-// Define a route for the login endpoint
-app.post('/login', (req, res) => {
-    console.log('Login Attempt...');
-    const username = req.body.username;
-    const password = req.body.password;
-    console.log(username);
-    console.log(password);
+app.post('/login', async (req, res) => {
+    const { username, password } = req.body;
 
-    // Load the login credentials from the JSON file
-    fs.readFile('./data/users.json', 'utf8', (err, data) => {
-        if (err) {
-            console.log('Error...');
-            res.status(500).json({ error: 'Server error: Could not read login credentials' });
-            return;
+    try {
+        // Connect to the database
+        const db = await connectToDatabase();
+        const usersCollection = db.collection('users');
+
+        // Find the user by username
+        const user = await usersCollection.findOne({ username: username });
+
+        if (!user) {
+            return res.status(400).json({ error: 'Invalid username or password' });
         }
 
-        try {
-            const credentials = JSON.parse(data);
+        // Compare the hashed password with the entered password
+        const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
-            const user = credentials.users.find(user => user.username === username && user.password === password);
-            if (user) {
-                res.status(200).json({ message: 'Login successful' });
-            } else {
-                res.status(401).json({ error: 'Invalid username or password' });
-            }
-        } catch (error) {
-            res.status(500).json({ error: 'Server error: Could not parse login credentials' });
+        if (!isPasswordCorrect) {
+            return res.status(400).json({ error: 'Invalid username or password' });
         }
-    });
+
+        // Successful login (you can also generate a session/token here if using sessions or JWT)
+        res.status(200).json({ message: 'Login successful' });
+
+    } catch (error) {
+        console.error('Error during login:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 app.get('/getPosts', async (req, res) => {

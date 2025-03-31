@@ -5,8 +5,8 @@ $(document).ready(function () {
         event.preventDefault(); // Prevent default form submission
 
         // Get form values
-        var username = $('#username').val();
-        var password = $('#password').val();
+        var username = $('#sign-up-username').val();
+        var password = $('#sign-up-password').val();
 
         // Optionally, get reCAPTCHA response (if using reCAPTCHA)
         const recaptchaResponse = grecaptcha.getResponse(); // Only if you have reCAPTCHA
@@ -30,44 +30,45 @@ $(document).ready(function () {
                 grecaptcha.reset(); // Reset the reCAPTCHA widget
             },
             error: function (error) {
+                $('#sign-up-password').val(''); // clear the password field
                 alert(error.responseJSON.error);
             }
         });
     });
    
-    // // Login form
-    // const loginForm = document.querySelector("#login-form");
-    // loginForm.addEventListener("submit", function (event) {
-    //     event.preventDefault();
-    //     const username = loginForm.querySelector("#username").value;
-    //     const password = loginForm.querySelector("#password").value;
+    // Sign-in form
+    $('#login-form').submit(function (event) {
+        event.preventDefault(); // Prevent the default form submission
 
-    //     // Create a JSON object with the credentials
-    //     const credentials = { username, password };
+        // Get form values
+        const username = $('#sign-in-username').val();
+        const password = $('#sign-in-password').val();
 
-    //     // Make an AJAX request to the server for authentication with proper headers
-    //     fetch("/login", {
-    //         method: "POST",
-    //         headers: {
-    //             "Content-Type": "application/json", // Set the content type to JSON
-    //         },
-    //         body: JSON.stringify(credentials), // Send the JSON object
-    //     })
-    //         .then((response) => {
-    //             if (response.status === 200) {
-    //                 return response.json();
-    //             } else {
-    //                 throw new Error("Authentication failed");
-    //             }
-    //         })
-    //         .then((data) => {
-    //             alert("Login successful! Redirect to the dashboard or perform further actions.");
-    //             // Redirect to the dashboard or perform other actions here.
-    //             window.location.href = "/index.html";
-    //         })
-    //         .catch((error) => {
-    //             alert("Invalid username or password. Please try again.");
-    //             console.error(error);
-    //         });
-    // });
+        // Create data to send to the backend
+        const data = {
+            username,
+            password
+        };
+
+        // Send login request to the backend
+        $.ajax({
+            url: '/login', // Your login route in the backend
+            type: 'POST',
+            data: JSON.stringify(data),
+            contentType: 'application/json',
+            success: function (response) {
+                alert(response.message); // Show success message
+                // Reset the form after successful login
+                $('#login-form')[0].reset(); // This will clear the form fields
+
+                // Optionally, you can redirect the user to another page, like the home page
+                // window.location.href = '/home'; // Redirect to the home page after login (adjust the URL accordingly)
+            },
+            error: function (error) {
+                $('#sign-in-password').val(''); // clear the password field
+                // Handle error response
+                alert(error.responseJSON.error); // Show error message if something went wrong
+            }
+        });
+    });
 }); 
