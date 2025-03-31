@@ -29,45 +29,55 @@ $(document).ready(function () {
 
     postForm.on("submit", function (event) {
         event.preventDefault();
-
+    
+        // Create FormData object
+        let formData = new FormData();
+    
         // Get values from the form
-        const title = $("#post-title").val();
-        const content = $("#post-content").val();
-        const genre = $("#post-genre").val();
-
-        console.log(`Genre: ${genre}`);
-
-        // Send the AJAX request using jQuery
+        formData.append("title", $("#post-title").val());
+        formData.append("content", $("#post-content").val());
+        formData.append("genre", $("#post-genre").val());
+    
+        // Get the selected image file
+        const imageFile = $("#post-image")[0].files[0];
+        if (imageFile) {
+            formData.append("image", imageFile);
+        }
+    
+        // Send AJAX request using FormData
         $.ajax({
             url: "/addPost",
             type: "POST",
-            contentType: "application/json",
-            data: JSON.stringify({ title, content, genre}),
+            data: formData,
+            processData: false,  // Prevent jQuery from processing data
+            contentType: false,  // Let the browser set Content-Type for FormData
             success: function (post) {
-                    // If the server returns a successful response, add the post to the post wrapper
-                    const newPost = createPostElement(
-                        post._id, 
-                        post.author,
-                        post.genre,
-                        post.date, 
-                        post.title, 
-                        post.content, 
-                        0, // numRatings 
-                        0, //averageRating
-                        0 // comments
-                    );
-                    postsWrapper.prepend(newPost);
-
-                    // Reset the form and hide it
-                    postForm.trigger("reset").hide();
-                    postsWrapper.removeClass("blur");
+                // Create new post element (ensure backend sends back the image URL)
+                const newPost = createPostElement(
+                    post._id, 
+                    post.author,
+                    post.genre,
+                    post.date, 
+                    post.title, 
+                    post.content, 
+                    0, // numRatings 
+                    0, // averageRating
+                    0, // comments
+                    post.imageUrl // Add image URL to display it
+                );
+    
+                postsWrapper.prepend(newPost);
+    
+                // Reset the form and hide it
+                postForm.trigger("reset").hide();
+                postsWrapper.removeClass("blur");
             },
-            error: function() {
-                    alert("Error adding post. Please try again.");
+            error: function () {
+                alert("Error adding post. Please try again.");
             }
-
         });
     });
+    
 
     $("#cancel-button").on("click", function () {
         // Reset the form and hide it
@@ -105,7 +115,9 @@ function fetchPosts() {
                     content =  post.content, 
                     numRatings =  post.numRatings, 
                     averageRating = post.averageRating, 
-                    comments = post.comments);
+                    comments = post.comments,
+                    imageUrl = post.imageUrl
+                );
                 console.log(post.thisUserRating);
 
                 //Highlight stars if ratings was given
@@ -131,17 +143,12 @@ function fetchPosts() {
     });
 }
 
-function createPostElement(_id, author, genre, date, title, content, numRatings, averageRating, comments) {
-
-    let commentsCount = 0;
-    if (comments != null) {
-        commentsCount = comments.length;
-    }
-
-    //let averageRating = 2.5;
-    let numRatingsHTML = `<p class="num-rating">Ratings No: ${numRatings}</p>`
+function createPostElement(_id, author, genre, date, title, content, numRatings, averageRating, comments, imageUrl) {
+    let commentsCount = comments ? comments.length : 0;
+    let numRatingsHTML = `<p class="num-rating">Ratings No: ${numRatings}</p>`;
 
     const postElement = $("<div>").addClass("post");
+
     postElement.html(`
         <input type="hidden" class="post-id" value="${_id}">
         <div class="post-header">
@@ -149,7 +156,10 @@ function createPostElement(_id, author, genre, date, title, content, numRatings,
             <span class="genre">${genre}</span>
             <span class="date">${date}</span>
         </div>
+
         <h2 class="title">${title}</h2>
+
+        ${imageUrl ? `<img src="${imageUrl}" alt="Story Image" class="post-image">` : ''}
         <p class="contents">${content}</p>
 
         <div class="reactions-container">
@@ -162,8 +172,8 @@ function createPostElement(_id, author, genre, date, title, content, numRatings,
                     <i class="far fa-star" data-value="4"></i>
                     <i class="far fa-star" data-value="5"></i>
                 </div>
-                <p class="average-rating">Average Rating: ${(numRatings>0) ? averageRating.toFixed(1) : 'No ratings yet'}</p>
-                ${(numRatings>0) ? numRatingsHTML : ''}
+                <p class="average-rating">Average Rating: ${(numRatings > 0) ? averageRating.toFixed(1) : 'No ratings yet'}</p>
+                ${(numRatings > 0) ? numRatingsHTML : ''}
             </div>
             <div class="comment-container">
                 <button class="comment-button" onclick="toggleComments(this)">
@@ -176,12 +186,11 @@ function createPostElement(_id, author, genre, date, title, content, numRatings,
         </div>
 
         <div class="add-comment-form" style="display: none;">
-                    <textarea class="comment-textarea" placeholder="Add a comment"></textarea>
-                    <button class="add-comment-button" onclick="addComment(this)">Post</button>
+            <textarea class="comment-textarea" placeholder="Add a comment"></textarea>
+            <button class="add-comment-button" onclick="addComment(this)">Post</button>
         </div>
 
-        <div class="comments-section">
-        </div>
+        <div class="comments-section"></div>
     `);
 
     return postElement;

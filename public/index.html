@@ -26,7 +26,7 @@
         <button id="add-post-button" class="add-post-button">+</button>
 
         <div id="post-form" class="post-form">
-            <form id="create-post-form">
+            <form id="create-post-form" enctype="multipart/form-data">
                 <label for="post-title">Title:</label>
                 <input type="text" id="post-title" required>
 
@@ -37,6 +37,9 @@
                 <select id="post-genre" required>
                     <!-- Options will be dynamically added here -->
                 </select>
+
+                <label for="post-image">Upload Image:</label>
+                <input type="file" id="post-image" name="image" accept="image/*">
 
                 <button type="submit">Post</button>
                 <button type="button" id="cancel-button">Cancel</button>

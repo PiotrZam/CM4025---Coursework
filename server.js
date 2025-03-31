@@ -2,10 +2,23 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const bodyParser = require('body-parser'); // Require the body-parser module
+const multer = require('multer');   // for uploading images
 
 const { ObjectId } = require('mongodb');
 
 const { connectToDatabase, mongoClient } = require("./db"); 
+
+// Set up storage engine for Multer
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/'); // Save files in the "uploads" folder
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + path.extname(file.originalname)); // Unique filename
+    }
+});
+
+const upload = multer({ storage: storage });
 
 const app = express();
 const port = 3000;
@@ -16,6 +29,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Add the body-parser middleware to handle JSON and form data
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+
+///////////////////////////////////////////////////////////////////////////////////
+// Routes below:
+
+//Allow static access to uploaded images
+app.use('/uploads', express.static('uploads'));
 
 // Define a route for the login endpoint
 app.post('/login', (req, res) => {
@@ -57,6 +77,7 @@ app.get('/getPosts', async (req, res) => {
         const stories = await dbo.collection("story").find({}).toArray();
 
         stories.forEach(st => {
+            // Caulculate total number of ratings, average rarting, and retrieve this user's rating for each story
             var numRatings = 0;
             var averageRating = 0;
             var thisUserRating = 0;
@@ -66,7 +87,7 @@ app.get('/getPosts', async (req, res) => {
                 var totalRating = st.ratings.reduce((acc, rating) => acc + rating.rating, 0);
                 averageRating = totalRating / numRatings;
 
-                // Find the rating for the specific userId
+                // Find the rating given by this user
                 const userRating = st.ratings.find(rating => rating.userId === userId);
 
                 thisUserRating = userRating ? userRating.rating : 0;
@@ -75,6 +96,14 @@ app.get('/getPosts', async (req, res) => {
             st.numRatings = numRatings;
             st.averageRating = averageRating;
             st.thisUserRating = thisUserRating;
+
+            // Include URL to the story picture
+            if (st.imageUrl && st.imageUrl != "") {
+                st.imageUrl = `${req.protocol}://${req.get("host")}${st.imageUrl}`;
+                console.log(st.imageUrl)
+            } else {
+                st.imageUrl = "";
+            }
         });
 
         res.status(200).json(stories); // Send the stories as a JSON response
@@ -85,20 +114,23 @@ app.get('/getPosts', async (req, res) => {
 });
 
 
-// server.js
-// ...
-
 function generateUniqueId() {
     // Generate a unique ID (you can use a more sophisticated method if needed)
     return Math.random().toString(36).substr(2, 9);
 }
 
-app.post('/addPost', async (req, res) => {
+app.post('/addPost', upload.single('image'), async (req, res) => {
+
     const { title, content, genre } = req.body;
 
     if (!title || !content) {
         return res.status(400).json({ success: false, error: 'Title and content are required' });
     }
+
+    // Get image path if an image was uploaded
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+
+    console.log(imageUrl);
 
     var newStory = {
         author: 'Server Author', // You may modify this to get the actual author from the request
@@ -106,8 +138,9 @@ app.post('/addPost', async (req, res) => {
         title: title,
         content: content,
         genre: genre,
+        imageUrl,
         isPublic: '1',
-        likes: [],  // Initialize the likes array
+        ratings: [], 
         comments: []
     };
 
