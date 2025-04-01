@@ -1,5 +1,4 @@
 // main.js
-const userId = '2345';
 const addPostButton = $("#add-post-button");
 const postForm = $("#post-form");
 const dashboard = $(".dashboard");
@@ -104,13 +103,10 @@ $(document).ready(function () {
 // End of document.ready
 
 function fetchPosts() {
-    var data = {
-        userId: userId
-    };
 
     // Fetch posts from the server using jQuery AJAX
     $.ajax({
-        url: `/getPosts?userId=${userId}`,
+        url: `/getPosts`,
         type: "GET",
         dataType: "json",
         success: function (posts) {
@@ -209,44 +205,6 @@ function createPostElement(_id, author, genre, date, title, content, numRatings,
     return postElement;
 }
 
-function likePost(buttonElement) {
-    var postElement = buttonElement.closest('.post');
-    var postId = postElement.querySelector('.post-id').value;
-    var likesCount = postElement.querySelector('.likesCountText');
-    console.log(postElement);
-    console.log('Like nr: ' + $(likesCount).text());
-    console.log('Post liked: ' + postId);
-
-   // if (postId == null) {
-        // Create the data to be sent in the request body
-        var data = {
-                    postId: postId,
-                    userId: userId
-                };
-
-        // Perform the server request using jQuery
-        $.ajax({
-            url: '/likePost',
-            method: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(data),
-            success: function (response) {
-                    // Handle the success response from the server
-                    console.log('Server response:', response);
-                    let theCount = parseInt($(likesCount).text()) + 1 
-                    $(likesCount).text(theCount); // Assuming the server returns the updated like count
-        
-            },
-            error: function (error) {
-                    // Handle the error response from the server
-                    console.error('There was a problem with the AJAX request:', error);
-            }
-        });
-//    } else {
-  //          console.error('Error: Post element not found.');
-    //}
-}
-
 function toggleComments(buttonElement) {
     const postElement = $(buttonElement).closest('.post');
     const commentsWrapper = $(postElement).find('.comments-wrapper');
@@ -273,7 +231,6 @@ function addComment(buttonElement) {
     var commentsCount = $(postElement).find('.commentsCountText');
 
     const commentData = {
-        userId: userId,
         postId: postId,
         content: commentContent
     };
@@ -316,7 +273,7 @@ function getCurrentDate() {
 
 function generateCommentHTML(comment) {
     const commentDiv = $('<div>').addClass('comment');
-    const commentAuthor = $('<span>').addClass('comment-author').text(comment.userId);
+    const commentAuthor = $('<span>').addClass('comment-author').text(comment.author);
     const commentDate = $('<span>').addClass('comment-date').text(comment.date);
     const commentContent = $('<p>').addClass('comment-content').text(he.decode(comment.content));
 
@@ -344,7 +301,7 @@ function rateStory(starElement) {
     fetch("/rateStory", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ storyId, userId, rating })
+        body: JSON.stringify({ storyId, rating })
     })
     .then(response => response.json())
     .then(data => {

@@ -165,8 +165,11 @@ app.post('/signUp', async (req, res) => {
     console.log(newUser)
 
     try {
-        await dbo.collection('users').insertOne(newUser);
-        req.session.user = { username }; // stay logged in. Set session data.
+        var result = await dbo.collection('users').insertOne(newUser);
+        req.session.user = {            // Set session user data
+            username: username,
+            userID: result.insertedId
+        };
         res.status(200).json({ message: 'Account created successfully' });
     } catch (error) {
         console.error('Error creating user:', error);
@@ -197,7 +200,10 @@ app.post('/login', async (req, res) => {
         }
 
         // Successful login
-        req.session.user = { username }; // Set session user data
+        req.session.user = {            // Set session user data
+            username: user.username,
+            userID: user._id
+        };
         res.status(200).json({ message: 'Login successful' });
 
     } catch (error) {
@@ -207,7 +213,12 @@ app.post('/login', async (req, res) => {
 });
 
 app.get('/getPosts', async (req, res) => {
-    const { userId } = req.query;
+    var userId = 0;
+    if (req.session && req.session.user)
+    {
+        userId = req.session.user.userID;
+    }
+
     try {
         const dbo = await connectToDatabase();
 
@@ -225,10 +236,11 @@ app.get('/getPosts', async (req, res) => {
                 var totalRating = st.ratings.reduce((acc, rating) => acc + rating.rating, 0);
                 averageRating = totalRating / numRatings;
 
-                // Find the rating given by this user
-                const userRating = st.ratings.find(rating => rating.userId === userId);
-
-                thisUserRating = userRating ? userRating.rating : 0;
+                if(userId)
+                {   // Find the rating given by this user
+                    const userRating = st.ratings.find(rating => rating.userId === userId);
+                    thisUserRating = userRating ? userRating.rating : 0;
+                }
             }
             
             st.numRatings = numRatings;
@@ -238,7 +250,6 @@ app.get('/getPosts', async (req, res) => {
             // Include URL to the story picture
             if (st.imageUrl && st.imageUrl != "") {
                 st.imageUrl = `${req.protocol}://${req.get("host")}${st.imageUrl}`;
-                console.log(st.imageUrl)
             } else {
                 st.imageUrl = "";
             }
@@ -262,6 +273,14 @@ app.post('/addPost', upload.single('image'), async (req, res) => {
     const { title, content, genre, recaptcha_token } = req.body;
     const wordLimit = 500;
 
+    var userId = 0;
+    var authorName = "Anonymous";
+    if (req.session && req.session.user)
+    {
+        userId = req.session.user.userID;
+        authorName = req.session.user.username;
+    }
+
     //#region validation: 
     if (!title || !content) {
         return res.status(400).json({ success: false, error: 'Title and content are required' });
@@ -274,7 +293,6 @@ app.post('/addPost', upload.single('image'), async (req, res) => {
         return res.status(400).json({ error: 'Content must be between 5 and 5000 characters.' });
 
     let wordCount = countWords(content);
-    console.log(`This story has ${wordCount} words`);
 
     if(wordCount > wordLimit)
         return res.status(400).json({ error: `Content must be under ${wordLimit} words.` });
@@ -313,7 +331,8 @@ app.post('/addPost', upload.single('image'), async (req, res) => {
 
 
     var newStory = {
-        author: 'Server Author', // You may modify this to get the actual author from the request
+        authorID: userId,
+        author: authorName, // You may modify this to get the actual author from the request
         date: new Date().toLocaleDateString(),
         title: sanitizedTitle,
         content: sanitizedContent,
@@ -358,50 +377,22 @@ app.post('/addPost', upload.single('image'), async (req, res) => {
     }
 });
 
-app.post('/likePost', async (req, res) => {
-    console.log(req.body);
-    var { postId, userId } = req.body;
-
-    try {
-        const dbo = await connectToDatabase();
-
-        // Convert string ID to MongoDB ObjectId
-        const story = await dbo.collection("story").findOne({ _id: new ObjectId(postId)});
-
-        console.log(story);
-
-        if (!story) {
-            return res.status(404).json({ success: false, error: "Story not found" });
-        }
-
-            // Use $addToSet to ensure userId is added only once
-        const result = await dbo.collection("story").updateOne(
-            { _id: new ObjectId(postId) },
-            { $addToSet: { likes: userId } } // Adds userId to likes array if not already present
-        );
-
-        if (result.modifiedCount === 0) {
-            console.log("User has already liked this story!")
-            return res.status(400).json({ success: false, message: "User has already liked the post." });
-        }
-
-        console.log(`Added a new like for story with id: ${story._id}`)
-        res.status(200).json(story);
-    } catch (err) {
-        console.error("Error updating likes:", err);
-        res.status(500).json({ success: false, error: "Failed to like a story" });
-    }
-});
-
 app.post('/rateStory', async (req, res) => {
-    console.log(req.body);
-    var { storyId, userId, rating } = req.body;
+    var { storyId, rating } = req.body;
+    var userId = 0;
+    if (req.session && req.session.user)
+    {
+        userId = req.session.user.userID;
+    }
 
-    console.log(req.body);
+    if(!userId)
+    {
+        return res.status(400).json({ success: false, error: "Only logged in users can rate stories. Please log in first." });
+    }
 
     // Validate input
-    if (!userId || !storyId || !rating || rating < 1 || rating > 5) {
-        return res.status(400).json({ success: false, error: "Invalid input. Please provide a valid userId, storyId, and rating between 1 and 5." });
+    if (!storyId || !rating || rating < 1 || rating > 5) {
+        return res.status(400).json({ success: false, error: "Invalid input. Please provide a valid storyId, and rating between 1 and 5." });
     }
 
     try {
@@ -445,8 +436,26 @@ app.post('/rateStory', async (req, res) => {
 });
 
 app.post('/addComment', async (req, res) => {
-    console.log(req.body);
-    var { postId, userId, date, content } = req.body;
+    var { postId, content } = req.body;
+    var userId = 0;
+    var username = "";
+
+    console.log("Session:")
+    console.log(req.session)
+
+    if (req.session && req.session.user)
+    {
+        userId = req.session.user.userID;
+        username = req.session.user.username;
+    }
+
+    console.log("Adding a comment...")
+    console.log(`UserID: ${userId}, username: ${username}`)
+
+    if(!userId)
+    {
+        return res.status(400).json({ success: false, error: "Only logged in users can add comments. Please log in first." });
+    }
 
     if (!validator.isLength(content, { min: 1, max: 250 }))
         return res.status(400).json({ error: 'Content must be between 1 and 250 characters.' });
@@ -455,6 +464,7 @@ app.post('/addComment', async (req, res) => {
 
     const newComment = {
         userId: userId,
+        author: username,
         date: new Date().toISOString(), // Store the current date and time in ISO format
         content: sanitizedContent
     };
