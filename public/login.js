@@ -1,5 +1,66 @@
 $(document).ready(function () {
     
+    // Check if user is logged in
+    $.ajax({
+        url: "/checkLoggedIn",
+        type: "GET",
+        success: function(response) {
+            if (response.loggedIn) {
+                $('#user-status-text').text(`${response.username}`);
+                $('#logout-link').show();  
+                $('#sign-up-form-container').hide();  
+                $('#login-form-container').hide();  
+                $('#login-message-text').text(`Welcome ${response.username}!`);
+                $('#login-message').show();
+                // login-message-text
+                
+                $('#user-status-text').off('click'); // Remove the click event handler for "Log in"
+            } else {
+                $('#user-status-text').text('Log in');
+                $('#logout-link').hide();
+                $('#sign-up-form-container').show();  
+                $('#login-form-container').show();
+                $('#login-message-text').text(``);
+                $('#login-message').hide();
+    
+                $('#user-status-text').on('click', function() { // Add a click listener to the "Log in" text
+                    window.location.href = 'login.html';
+                });
+            }
+        },
+        error: function() {
+            $('#user-status-text').text('Log in');
+            $('#logout-link').hide();
+            $('#sign-up-form-container').show();  
+            $('#login-form-container').show();
+            $('#login-message-text').text(``);
+            $('#login-message').hide();
+
+            $('#user-status-text').on('click', function() {
+                window.location.href = 'login.html';  // Redirect to the login page
+            });
+        }
+    });
+    
+
+    // add event handler to logout link
+    $('#logout').click(function (event) {
+        event.preventDefault();  // Prevent the default link behavior
+
+        // Send a POST request to the server to log out
+        $.ajax({
+            url: '/logout',  // POST request to the logout route
+            type: 'POST',    // Change type to POST
+            success: function () {
+                alert("You are now logged out")
+                window.location.href = 'login.html'; // Redirect to login page
+            },
+            error: function () {
+                alert('Failed to log out');
+            }
+        });
+    });
+
     // Sign up form
     $('#sign-up-form').submit(function (event) {
         event.preventDefault(); // Prevent default form submission

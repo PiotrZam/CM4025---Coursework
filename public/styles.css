@@ -349,3 +349,9 @@ body {
 #user-status-text {
     cursor: pointer;
 }
+
+#login-message {
+    font-size: 3em;
+    text-align: center;
+    margin-top: 50px;
+}
