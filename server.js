@@ -7,13 +7,14 @@ const axios = require('axios');
 const dotenv = require('dotenv').config();
 const bcrypt = require('bcryptjs');
 
+const session = require("express-session");
+const MongoStore = require("connect-mongo");
+
 const xss = require('xss');
 const he = require('he');
 const validator = require('validator');
 
-
 const { ObjectId } = require('mongodb');
-
 const { connectToDatabase, mongoClient } = require("./db"); 
 
 // Set up storage engine for Multer
@@ -31,8 +32,12 @@ const upload = multer({
     limits: {fileSize: 5 * 1024 * 1024}
 });
 
+const RECAPTCHA_API_URL = 'https://www.google.com/recaptcha/api/siteverify'
+
 const app = express();
 const port = process.env.PORT;
+
+/////////////////////////////////
 
 // Set up static file serving for the "public" directory
 app.use(express.static(path.join(__dirname, 'public')));
@@ -44,7 +49,23 @@ app.use(bodyParser.urlencoded({ extended: true }));
 //Allow static access to uploaded images
 app.use('/uploads', express.static('uploads'));
 
-const RECAPTCHA_API_URL = 'https://www.google.com/recaptcha/api/siteverify'
+// Set up the session middleware
+app.use(
+    session({
+        secret: process.env.SESSION_SECRET,
+        resave: false, // Whether to save the session if it was not modified during the request
+        saveUninitialized: false, // Don't create a session for requests that aren't logged in
+        cookie: {
+            maxAge: 24 * 60 * 60 * 1000, // 1 day expiry for session cookies
+            httpOnly: true, // Helps mitigate XSS attacks
+            secure: false // Only set cookies over HTTPS if set to true
+        },
+        store: MongoStore.create({
+            client: mongoClient, 
+            dbName: process.env.DB_NAME
+        })
+    })
+);
 
 ///////////////////////////////////////////////////////////////////////////////////
 // Functions below:
@@ -60,6 +81,29 @@ function countWords(str) {
 
 ///////////////////////////////////////////////////////////////////////////////////
 // Routes below:
+
+// Backend: Express Route for Checking Login Status
+app.get("/checkLoggedIn", (req, res) => {
+    if (req.session && req.session.user) {
+        // If there's a user session, return the logged-in user's username
+        res.json({ loggedIn: true, username: req.session.user.username });
+    } else {
+        // If no user session, the user is not logged in
+        res.json({ loggedIn: false });
+    }
+});
+
+// Backend: Express Route for Logging Out
+app.post("/logout", (req, res) => {
+    console.log(req)
+    console.log(req.session)
+    req.session.destroy((err) => {
+        if (err) {
+            return res.status(500).json({ error: "Failed to log out" });
+        }
+        res.json({ success: true });
+    });
+});
 
 // Sign Up Endpoint
 app.post('/signUp', async (req, res) => {
@@ -122,6 +166,7 @@ app.post('/signUp', async (req, res) => {
 
     try {
         await dbo.collection('users').insertOne(newUser);
+        req.session.user = { username }; // stay logged in. Set session data.
         res.status(200).json({ message: 'Account created successfully' });
     } catch (error) {
         console.error('Error creating user:', error);
@@ -151,7 +196,8 @@ app.post('/login', async (req, res) => {
             return res.status(400).json({ error: 'Invalid username or password' });
         }
 
-        // Successful login (you can also generate a session/token here if using sessions or JWT)
+        // Successful login
+        req.session.user = { username }; // Set session user data
         res.status(200).json({ message: 'Login successful' });
 
     } catch (error) {

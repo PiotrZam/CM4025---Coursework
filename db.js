@@ -4,7 +4,7 @@ const {MongoClient} = require("mongodb");
 
 const mongoUri = process.env.MONGO_URI;
 const mongoClient = new MongoClient(mongoUri);
-const dbName = "whisperedWords";
+const dbName = process.env.DB_NAME;
 
 let db;
 

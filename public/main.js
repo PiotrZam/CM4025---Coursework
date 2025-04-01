@@ -6,6 +6,7 @@ const dashboard = $(".dashboard");
 const postsWrapper = $("#posts-wrapper");
 
 $(document).ready(function () {
+    
      // Fetch posts when the page is loaded or refreshed
      fetchPosts();
 

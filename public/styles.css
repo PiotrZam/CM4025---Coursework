@@ -327,3 +327,25 @@ body {
 .comment-content {
     margin-top: 5px;
 }
+
+/* login details */
+#login-fields {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    font-size: 18px;
+    font-weight: bold;
+    color: whitesmoke;
+}
+
+
+
+#logout {
+    color: inherit;
+    text-decoration: none;
+    font-weight: normal; 
+}
+
+#user-status-text {
+    cursor: pointer;
+}

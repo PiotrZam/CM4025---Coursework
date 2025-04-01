@@ -1,5 +1,5 @@
 $(document).ready(function () {
-
+    
     // Sign up form
     $('#sign-up-form').submit(function (event) {
         event.preventDefault(); // Prevent default form submission
@@ -28,6 +28,7 @@ $(document).ready(function () {
                 alert(response.message);
                 $('#sign-up-form')[0].reset(); // clear the form fields
                 grecaptcha.reset(); // Reset the reCAPTCHA widget
+                window.location.href = 'login.html'; // Redirect to login page
             },
             error: function (error) {
                 $('#sign-up-password').val(''); // clear the password field
@@ -60,9 +61,7 @@ $(document).ready(function () {
                 alert(response.message); // Show success message
                 // Reset the form after successful login
                 $('#login-form')[0].reset(); // This will clear the form fields
-
-                // Optionally, you can redirect the user to another page, like the home page
-                // window.location.href = '/home'; // Redirect to the home page after login (adjust the URL accordingly)
+                window.location.href = 'login.html'; // Redirect to login page
             },
             error: function (error) {
                 $('#sign-in-password').val(''); // clear the password field
