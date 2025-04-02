@@ -6,31 +6,39 @@ $(document).ready(function () {
         type: "GET",
         success: function(response) {
             if (response.loggedIn) {
-                // User is logged in, display the username
-                $('#user-status-text').text(`${response.username}`);
-                $('#logout-link').show();  // Show the log out link
-    
-                // Remove the click event handler for "Log in" text if user is logged in
-                $('#user-status-text').off('click');
+                setUsername(response.username);
             } else {
-                // User is not logged in, display "Log in"
-                $('#user-status-text').text('Log in');
-                $('#logout-link').hide();
-    
-                // Add a click listener to the "Log in" text
-                $('#user-status-text').on('click', function() {
-                    window.location.href = 'login.html';  // Redirect to the login page
-                });
+                clearUsername();
             }
         },
         error: function() {
-            $('#user-status-text').text('Log in');
-            $('#user-status-text').on('click', function() {
-                window.location.href = 'login.html';  // Redirect to the login page
-            });
-            $('#logout-link').hide();  // Hide the log out link in case of an error
+            clearUsername();
         }
     });
+
+    function setUsername(username)
+    {
+        // User is logged in, display the username
+        $('#user-status-text').text(username);
+        $('#logout-link').show();  // Show the log out link
+        $('#loggedUserName').val(username); // set to hidden input field
+
+        // Remove the click event handler for "Log in" text if user is logged in
+        $('#user-status-text').off('click');
+    }
+
+    function clearUsername()
+    {
+        // User is not logged in, display "Log in"
+        $('#user-status-text').text('Log in');
+        $('#logout-link').hide();
+        $('#loggedUserName').val(''); // clear hidden input field
+
+        // Add a click listener to the "Log in" text
+        $('#user-status-text').on('click', function() {
+            window.location.href = 'login.html';  // Redirect to the login page
+        });
+    }
     
 
     // add event handler to logout link

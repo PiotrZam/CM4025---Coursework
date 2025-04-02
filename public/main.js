@@ -65,7 +65,7 @@ $(document).ready(function () {
             contentType: false,  // Let the browser set Content-Type for FormData
             success: function (post) {
                 // Create new post element (ensure backend sends back the image URL)
-                const newPost = createPostElement(
+                var postHTML = createPostElement(
                     post._id, 
                     post.author,
                     post.genre,
@@ -78,7 +78,9 @@ $(document).ready(function () {
                     post.imageUrl // Add image URL to display it
                 );
     
-                postsWrapper.prepend(newPost);
+                modifyPostAfterCreation(post, postHTML)
+
+                postsWrapper.prepend(postHTML);
     
                 // Reset the form and hide it
                 postForm.trigger("reset").hide();
@@ -115,7 +117,7 @@ function fetchPosts() {
 
             // Add each post to the the wrapper
             posts.forEach(function (post) {
-                var newPost = createPostElement(
+                var postHTML = createPostElement(
                     _id = post._id, 
                     author =  post.author, 
                     genre = post.genre,
@@ -129,21 +131,8 @@ function fetchPosts() {
                 );
                 console.log(post.thisUserRating);
 
-                //Highlight stars if ratings was given
-                const starsElement = newPost.find('.stars').first();
-                if(post.thisUserRating > 0)
-                    {
-                        //convert jquery element to html element
-                        starsHtml = starsElement.get(0);
-                        // Make sure stars are highlighter in line with user's rating
-                        highlightStars(starsHtml, post.thisUserRating);
-                    }
-
-                if(post.comments != null && post.comments.length > 0)
-                {
-                    displayComments(newPost, post.comments);
-                }
-                postsWrapper.append(newPost);
+                modifyPostAfterCreation(post, postHTML);
+                postsWrapper.append(postHTML);
             });
         },
         error: function () {
@@ -185,7 +174,7 @@ function createPostElement(_id, author, genre, date, title, content, numRatings,
                 ${(numRatings > 0) ? numRatingsHTML : ''}
             </div>
             <div class="comment-container">
-                <button class="comment-button" onclick="toggleComments(this)">
+                <button class="comment-button" ${($('#loggedUserName').val()) ? 'onclick="toggleComments(this)"' : ''}>
                     <i class="far fa-comment"></i> Comment
                 </button>
                 <div class="commentsCount">
@@ -204,6 +193,42 @@ function createPostElement(_id, author, genre, date, title, content, numRatings,
 
     return postElement;
 }
+
+
+function modifyPostAfterCreation(post, postHTML)
+{   
+    // Display comments 
+    if(post.comments != null && post.comments.length > 0)
+    {
+            displayComments(postHTML, post.comments);
+    }
+
+    // User not logged in...
+    if(!$('#loggedUserName').val())
+    {
+        // Give comments inactive look
+        $(postHTML).find('.comment-button').addClass('inactive');
+        $(postHTML).find('.comment-button').attr('title', 'Only logged-in users can leave comments');
+
+        // Make stars look inactive
+        $(postHTML).find('.fa-star').addClass('inactive');
+        $(postHTML).find('.fa-star').attr('title', 'Only logged-in users can give rating');
+    } 
+    
+    // User logged in...
+    else {
+        //Highlight stars if ratings was given
+        const starsElement = postHTML.find('.stars').first();
+        if(post.thisUserRating > 0)
+        {
+            //convert jquery element to html element
+            starsHtml = starsElement.get(0);
+            // Make sure stars are highlighter in line with user's rating
+            highlightStars(starsHtml, post.thisUserRating);
+        }
+    }
+}
+
 
 function toggleComments(buttonElement) {
     const postElement = $(buttonElement).closest('.post');

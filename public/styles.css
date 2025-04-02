@@ -237,6 +237,11 @@ body {
     cursor: pointer;
 }
 
+.stars .inactive {
+    color: #a1a1a1;
+    cursor: not-allowed;
+}
+
 /* Update or add these styles */
 .reactions-container {
     display: flex;
@@ -264,6 +269,13 @@ body {
 
 .comment-button:hover {
     background-color: #2980b9;
+}
+
+.comment-button.inactive {
+    background-color: #d3d3d3;
+    color: #a1a1a1;       
+    cursor: not-allowed; 
+    border: 1px solid #a1a1a1;
 }
 
 .add-comment-form {

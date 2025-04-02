@@ -6,42 +6,44 @@ $(document).ready(function () {
         type: "GET",
         success: function(response) {
             if (response.loggedIn) {
-                $('#user-status-text').text(`${response.username}`);
-                $('#logout-link').show();  
-                $('#sign-up-form-container').hide();  
-                $('#login-form-container').hide();  
-                $('#login-message-text').text(`Welcome ${response.username}!`);
-                $('#login-message').show();
-                // login-message-text
-                
-                $('#user-status-text').off('click'); // Remove the click event handler for "Log in"
+                setUsername(response.username);
             } else {
-                $('#user-status-text').text('Log in');
-                $('#logout-link').hide();
-                $('#sign-up-form-container').show();  
-                $('#login-form-container').show();
-                $('#login-message-text').text(``);
-                $('#login-message').hide();
-    
-                $('#user-status-text').on('click', function() { // Add a click listener to the "Log in" text
-                    window.location.href = 'login.html';
-                });
+                clearUsername();
             }
         },
         error: function() {
-            $('#user-status-text').text('Log in');
-            $('#logout-link').hide();
-            $('#sign-up-form-container').show();  
-            $('#login-form-container').show();
-            $('#login-message-text').text(``);
-            $('#login-message').hide();
-
-            $('#user-status-text').on('click', function() {
-                window.location.href = 'login.html';  // Redirect to the login page
-            });
+            clearUsername();
         }
     });
     
+    function setUsername(username) 
+    {
+        $('#user-status-text').text(username);
+        $('#logout-link').show();  
+        $('#sign-up-form-container').hide();  
+        $('#login-form-container').hide();  
+        $('#login-message-text').text(`Welcome ${username}`);
+        $('#login-message').show();
+        $('#loggedUserName').val(username); // set to hidden input field
+        // login-message-text
+        
+        $('#user-status-text').off('click'); // Remove the click event handler for "Log in"
+    }
+
+    function clearUsername()
+    {
+        $('#user-status-text').text('Log in');
+        $('#logout-link').hide();
+        $('#sign-up-form-container').show();  
+        $('#login-form-container').show();
+        $('#login-message-text').text(``);
+        $('#login-message').hide();
+        $('#loggedUserName').val(``);
+
+        $('#user-status-text').on('click', function() { // Add a click listener to the "Log in" text
+            window.location.href = 'login.html';
+        });
+    }
 
     // add event handler to logout link
     $('#logout').click(function (event) {
