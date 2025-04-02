@@ -214,9 +214,11 @@ app.post('/login', async (req, res) => {
 
 app.get('/getPosts', async (req, res) => {
     var userId = 0;
+    var username = "";
     if (req.session && req.session.user)
     {
         userId = req.session.user.userID;
+        username = username = req.session.user.username;
     }
 
     try {
@@ -264,6 +266,11 @@ app.get('/getPosts', async (req, res) => {
             {
                 st.genre = "Unknown";
             }
+
+            if((userId) && userId === st.authorID)
+            {
+                st.isOwnStory = true;
+            }
         });
 
         res.status(200).json(stories); // Send the stories as a JSON response
@@ -272,7 +279,6 @@ app.get('/getPosts', async (req, res) => {
         res.status(500).json({ success: false, error: "Failed to fetch stories" });
     }
 });
-
 
 app.post('/addPost', upload.single('image'), async (req, res) => {
 
@@ -401,6 +407,62 @@ app.post('/addPost', upload.single('image'), async (req, res) => {
         res.status(400).json({ success: false, error: 'Something went wrong. Failed to add a new story' });
     }
 });
+
+app.delete('/deleteStory/:id', async (req, res) => {
+    const storyId = req.params.id;
+
+    var userId = 0;
+
+    if (req.session && req.session.user)
+    {
+        userId = req.session.user.userID;
+    }
+
+    if(!userId)
+    {
+        return res.status(404).send('User not recognised');
+    }
+
+    try {
+        const dbo = await connectToDatabase();
+        
+        // First check if user is the author
+        const story = await dbo.collection("story").findOne({ _id: new ObjectId(storyId) });
+
+        console.log("Story:")
+        console.log(story)
+
+        console.log("userID:")
+        console.log(userId)
+
+        console.log("authorID:")
+        console.log(story.authorID)
+
+        console.log("Are equal??:")
+        console.log(story.authorID === userId)
+
+        if (!story) {
+            return res.status(404).send('Story not found');
+        }
+
+        if (story.authorID !== userId) {
+            return res.status(403).send('You are not the author of this story');
+        }
+
+        // verification completed, proceed to deleting the story
+        const result = await dbo.collection("story").deleteOne({ _id: new ObjectId(storyId) });
+
+        if (result.deletedCount === 1) {
+            res.status(200).send('Story deleted successfully');
+        } else {
+            res.status(404).send('Story not found');
+        }
+    } catch (err) {
+        console.error('Error deleting story:', err);
+        res.status(500).send('Error deleting story');
+    }
+});
+
 
 app.post('/rateStory', async (req, res) => {
     var { storyId, rating } = req.body;

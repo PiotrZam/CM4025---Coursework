@@ -95,7 +95,8 @@ $(document).ready(async function () {
                     0, // averageRating
                     0, // comments
                     post.imageUrl, // Add image URL to display it,
-                    post.isPublic
+                    post.isPublic,
+                    post.isOwnStory
                 );
     
                 modifyPostAfterCreation(post, postHTML)
@@ -220,7 +221,8 @@ function fetchPosts() {
                     post.averageRating,
                     post.comments,
                     post.imageUrl,
-                    post.isPublic
+                    post.isPublic,
+                    post.isOwnStory
                 );
                 console.log(post.thisUserRating);
 
@@ -234,7 +236,7 @@ function fetchPosts() {
     });
 }
 
-function createPostElement(_id, author, genre, date, title, content, numRatings, averageRating, comments, imageUrl, isPublic) {
+function createPostElement(_id, author, genre, date, title, content, numRatings, averageRating, comments, imageUrl, isPublic, isOwnStory) {
     let commentsCount = comments ? comments.length : 0;
     let numRatingsHTML = `<p class="num-rating">Ratings No: ${numRatings}</p>`;
 
@@ -246,6 +248,7 @@ function createPostElement(_id, author, genre, date, title, content, numRatings,
             <span class="author">${he.escape(author)}</span>
             <span class="genre">${he.escape(genre)}</span>
             ${isPublic ? '<span class="public-status ps-public">Public</span>' : '<span class="public-status ps-private">Private</span>'}
+            ${isOwnStory ? `<span class="delete-story dels-active" onclick="deleteStory('${_id}')">Delete</span>` : '<span class="delete-story"></span>'}
             <span class="date">${date}</span>
         </div>
 
@@ -323,6 +326,22 @@ function modifyPostAfterCreation(post, postHTML)
             highlightStars(starsHtml, post.thisUserRating);
         }
     }
+}
+
+function deleteStory(storyId) {
+    $.ajax({
+        url: `/deleteStory/${storyId}`,  
+        method: 'DELETE',
+        success: function(response) {
+            // If the post was deleted successfully, remove it from the DOM
+            // $(`.post .post-id[value='${postId}']`).closest('.post').remove();
+            alert("Post deleted successfully.");
+        },
+        error: function(err) {
+            console.error('Error deleting post:', err);
+            alert("There was an error deleting the post.");
+        }
+    });
 }
 
 function toggleAddCommentBox(buttonElement) {

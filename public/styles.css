@@ -119,6 +119,20 @@ body {
     background-color: #dc6f6f; /* A less bright red background for private */
 }
 
+.delete-story {
+    display: inline-block;         /* Makes it inline-block to adjust with content */
+    padding: 5px 10px;             /* Padding for better visual appearance */
+    border-radius: 12px;           /* Rounded corners */
+    font-weight: bold;             /* Bold text */
+    font-size: 14px;               /* Slightly smaller text */
+}
+
+.delete-story.dels-active {
+    background-color: darkgray;
+    color: white;
+    cursor: pointer;
+}
+
 
 /* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// */
 /* ADD A STORY */
