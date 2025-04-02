@@ -174,12 +174,15 @@ function createPostElement(_id, author, genre, date, title, content, numRatings,
                 ${(numRatings > 0) ? numRatingsHTML : ''}
             </div>
             <div class="comment-container">
-                <button class="comment-button" ${($('#loggedUserName').val()) ? 'onclick="toggleComments(this)"' : ''}>
+                <button class="comment-button" ${($('#loggedUserName').val()) ? 'onclick="toggleAddCommentBox(this)"' : ''}>
                     <i class="far fa-comment"></i> Comment
                 </button>
                 <div class="commentsCount">
                     <p class="commentsCountText">${commentsCount}</p>
                 </div>
+                <button class="toggle-comments" onclick="toggleComments(this)">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
             </div>
         </div>
 
@@ -188,7 +191,7 @@ function createPostElement(_id, author, genre, date, title, content, numRatings,
             <button class="add-comment-button" onclick="addComment(this)">Post</button>
         </div>
 
-        <div class="comments-section"></div>
+        <div class="comments-section" style="display: none;"></div>
     `);
 
     return postElement;
@@ -230,7 +233,7 @@ function modifyPostAfterCreation(post, postHTML)
 }
 
 
-function toggleComments(buttonElement) {
+function toggleAddCommentBox(buttonElement) {
     const postElement = $(buttonElement).closest('.post');
     const commentsWrapper = $(postElement).find('.comments-wrapper');
     const addCommentForm = $(postElement).find('.add-comment-form');
@@ -245,6 +248,22 @@ function toggleComments(buttonElement) {
     commentsWrapper.slideToggle();
     addCommentForm.slideToggle();
 }
+
+function toggleComments(buttonElement) {
+    const postElement = $(buttonElement).closest('.post');
+    const commentsWrapper = $(postElement).find('.comments-section');
+    const icon = $(buttonElement).find('i');
+
+    commentsWrapper.slideToggle(250, function() {
+        // This callback is executed after the slideToggle animation completes
+        if (commentsWrapper.is(':visible')) {
+            icon.removeClass('fa-chevron-down').addClass('fa-chevron-up'); // Change to unfold icon
+        } else {
+            icon.removeClass('fa-chevron-up').addClass('fa-chevron-down'); // Change to fold icon
+        }
+    });
+}
+
 
 function addComment(buttonElement) {
     const postElement = $(buttonElement).closest('.post'); 

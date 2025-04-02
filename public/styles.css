@@ -340,6 +340,10 @@ body {
     margin-top: 5px;
 }
 
+.toggle-comments {
+    margin-left: 10px;
+}
+
 /* login details */
 #login-fields {
     position: fixed;
