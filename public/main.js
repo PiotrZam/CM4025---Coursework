@@ -334,7 +334,7 @@ function deleteStory(storyId) {
         method: 'DELETE',
         success: function(response) {
             // If the post was deleted successfully, remove it from the DOM
-            // $(`.post .post-id[value='${postId}']`).closest('.post').remove();
+            $(`.post .post-id[value='${storyId}']`).closest('.post').remove();
             alert("Post deleted successfully.");
         },
         error: function(err) {
