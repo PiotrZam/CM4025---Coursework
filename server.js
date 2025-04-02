@@ -481,14 +481,19 @@ app.post('/addComment', async (req, res) => {
             return res.status(404).json({ success: false, error: "Story not found" });
         }
 
-            // Use $addToSet to ensure userId is added only once
         const result = await dbo.collection("story").updateOne(
             { _id: new ObjectId(postId) },
             { $push: { comments: newComment } }
         );
 
-        console.log(`Added a new comment for story with id: ${story._id}`)
-        res.status(200).json(story);
+        if(result.acknowledged)
+        {
+            console.log(`Added a new comment for story with id: ${story._id}`)
+            res.status(200).json(newComment);
+        } else {
+            throw new Error("Something went wrong. Failed to add a comment!");
+        }
+
     } catch (err) {
         console.error("Error adding comment:", err);
         res.status(500).json({ success: false, error: "Failed to add a comment" });

@@ -236,6 +236,7 @@ function addComment(buttonElement) {
     };
 
     addCommentForm.slideToggle();
+    console.log("commentData...")
     console.log(commentData)
 
     $.ajax({
@@ -249,6 +250,12 @@ function addComment(buttonElement) {
 
             //Add the comment
             let comment = generateCommentHTML(response);
+            console.log("Response...")
+            console.log(response)
+
+            console.log("New Comment HTML...")
+            console.log(comment)
+
             commentsWrapper.prepend(comment);
 
             // increment comment count
@@ -272,9 +279,11 @@ function getCurrentDate() {
 }
 
 function generateCommentHTML(comment) {
+    const date = new Date(comment.date)
+    const formattedDate = `${String(date.getDate()).padStart(2, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}-${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
     const commentDiv = $('<div>').addClass('comment');
     const commentAuthor = $('<span>').addClass('comment-author').text(comment.author);
-    const commentDate = $('<span>').addClass('comment-date').text(comment.date);
+    const commentDate = $('<span>').addClass('comment-date').text(formattedDate);
     const commentContent = $('<p>').addClass('comment-content').text(he.decode(comment.content));
 
     commentDiv.append(commentAuthor, commentDate, commentContent);
