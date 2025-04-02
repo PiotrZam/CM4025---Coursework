@@ -1,10 +1,26 @@
+// Import functions:
+//import { checkLoggedIn, setUpLogoutLink } from './allPages.js';
+
 // main.js
 const addPostButton = $("#add-post-button");
 const postForm = $("#post-form");
 const dashboard = $(".dashboard");
 const postsWrapper = $("#posts-wrapper");
 
-$(document).ready(function () {
+$(document).ready(async function () {
+
+    await checkLoggedIn();
+    setUpLogoutLink();
+
+    var loggedIn = ($('#loggedUserName').val() ? true : false)
+    console.log(`Logged in: ${loggedIn}`)
+
+    if(!loggedIn)
+    {
+        $('#post-public').prop('disabled', true);
+    } else {
+        $('#post-public').prop('disabled', false);
+    }
     
      // Fetch posts when the page is loaded or refreshed
      fetchPosts();
@@ -53,6 +69,9 @@ $(document).ready(function () {
             formData.append("image", imageFile);
         }
 
+        var isPublic = $('#post-public').prop('checked');
+
+        formData.append("isPublic", isPublic);
         // Append the reCAPTCHA token to the form data
         formData.append("recaptcha_token", recaptchaToken);
     
@@ -75,7 +94,8 @@ $(document).ready(function () {
                     0, // numRatings 
                     0, // averageRating
                     0, // comments
-                    post.imageUrl // Add image URL to display it
+                    post.imageUrl, // Add image URL to display it,
+                    post.isPublic
                 );
     
                 modifyPostAfterCreation(post, postHTML)
@@ -104,6 +124,78 @@ $(document).ready(function () {
 });
 // End of document.ready
 
+
+//#region login functions
+
+function checkLoggedIn()
+{
+    return new Promise((resolve, reject) => {
+        // Check if user is logged in
+        $.ajax({
+            url: "/checkLoggedIn",
+            type: "GET",
+            success: function(response) {
+                if (response.loggedIn) {
+                    setUsername(response.username);
+                } else {
+                    clearUsername();
+                }
+                resolve(response);
+            },
+            error: function() {
+                clearUsername();
+                resolve(false);
+            }
+        });
+    });
+}
+
+function setUsername(username)
+{
+    // User is logged in, display the username
+    $('#user-status-text').text(username);
+    $('#logout-link').show();  // Show the log out link
+    $('#loggedUserName').val(username); // set to hidden input field
+
+    // Remove the click event handler for "Log in" text if user is logged in
+    $('#user-status-text').off('click');
+}
+
+function clearUsername()
+{
+    // User is not logged in, display "Log in"
+    $('#user-status-text').text('Log in');
+    $('#logout-link').hide();
+    $('#loggedUserName').val(''); // clear hidden input field
+
+    // Add a click listener to the "Log in" text
+    $('#user-status-text').on('click', function() {
+        window.location.href = 'login.html';  // Redirect to the login page
+    });
+}
+
+function setUpLogoutLink() {
+    // add event handler to logout link
+    $('#logout').click(function (event) {
+        event.preventDefault();  // Prevent the default link behavior
+
+        // Send a POST request to the server to log out
+        $.ajax({
+            url: '/logout',  // POST request to the logout route
+            type: 'POST',    // Change type to POST
+            success: function () {
+                alert("You are now logged out")
+                window.location.href = 'login.html'; // Redirect to login page
+            },
+            error: function () {
+                alert('Failed to log out');
+            }
+        });
+    });
+}
+
+//#endregion Login functions
+
 function fetchPosts() {
 
     // Fetch posts from the server using jQuery AJAX
@@ -118,16 +210,17 @@ function fetchPosts() {
             // Add each post to the the wrapper
             posts.forEach(function (post) {
                 var postHTML = createPostElement(
-                    _id = post._id, 
-                    author =  post.author, 
-                    genre = post.genre,
-                    date = post.date, 
-                    title = post.title, 
-                    content =  post.content, 
-                    numRatings =  post.numRatings, 
-                    averageRating = post.averageRating, 
-                    comments = post.comments,
-                    imageUrl = post.imageUrl
+                    post._id, 
+                    post.author, 
+                    post.genre,
+                    post.date, 
+                    post.title, 
+                    post.content, 
+                    post.numRatings, 
+                    post.averageRating,
+                    post.comments,
+                    post.imageUrl,
+                    post.isPublic
                 );
                 console.log(post.thisUserRating);
 
@@ -141,7 +234,7 @@ function fetchPosts() {
     });
 }
 
-function createPostElement(_id, author, genre, date, title, content, numRatings, averageRating, comments, imageUrl) {
+function createPostElement(_id, author, genre, date, title, content, numRatings, averageRating, comments, imageUrl, isPublic) {
     let commentsCount = comments ? comments.length : 0;
     let numRatingsHTML = `<p class="num-rating">Ratings No: ${numRatings}</p>`;
 
@@ -152,6 +245,7 @@ function createPostElement(_id, author, genre, date, title, content, numRatings,
         <div class="post-header">
             <span class="author">${he.escape(author)}</span>
             <span class="genre">${he.escape(genre)}</span>
+            ${isPublic ? '<span class="public-status ps-public">Public</span>' : '<span class="public-status ps-private">Private</span>'}
             <span class="date">${date}</span>
         </div>
 
@@ -197,7 +291,6 @@ function createPostElement(_id, author, genre, date, title, content, numRatings,
     return postElement;
 }
 
-
 function modifyPostAfterCreation(post, postHTML)
 {   
     // Display comments 
@@ -225,13 +318,12 @@ function modifyPostAfterCreation(post, postHTML)
         if(post.thisUserRating > 0)
         {
             //convert jquery element to html element
-            starsHtml = starsElement.get(0);
+            var starsHtml = starsElement.get(0);
             // Make sure stars are highlighter in line with user's rating
             highlightStars(starsHtml, post.thisUserRating);
         }
     }
 }
-
 
 function toggleAddCommentBox(buttonElement) {
     const postElement = $(buttonElement).closest('.post');
@@ -263,7 +355,6 @@ function toggleComments(buttonElement) {
         }
     });
 }
-
 
 function addComment(buttonElement) {
     const postElement = $(buttonElement).closest('.post'); 
@@ -314,7 +405,6 @@ function addComment(buttonElement) {
         }
     });
 }
-
 
 function getCurrentDate() {
     const currentDate = new Date();

@@ -222,8 +222,14 @@ app.get('/getPosts', async (req, res) => {
     try {
         const dbo = await connectToDatabase();
 
-        // Retrieve all stories from the "story" collection
-        const stories = await dbo.collection("story").find({}).toArray();
+        let query = {};
+
+        // If the user is not logged in, fetch only public posts
+        if (!userId) {
+            query.isPublic = { $in: [true, 1, "1"] };
+        }
+
+        const stories = await dbo.collection("story").find(query).toArray();
 
         stories.forEach(st => {
             // Caulculate total number of ratings, average rarting, and retrieve this user's rating for each story
@@ -270,11 +276,16 @@ app.get('/getPosts', async (req, res) => {
 
 app.post('/addPost', upload.single('image'), async (req, res) => {
 
-    const { title, content, genre, recaptcha_token } = req.body;
+    const { title, content, genre, isPublic, recaptcha_token } = req.body;
     const wordLimit = 500;
+
+    console.log("\nNew Request:")
+    console.log(req.body)
 
     var userId = 0;
     var authorName = "Anonymous";
+    var validatedIsPublic = true;
+
     if (req.session && req.session.user)
     {
         userId = req.session.user.userID;
@@ -320,6 +331,20 @@ app.post('/addPost', upload.single('image'), async (req, res) => {
         console.error('Error verifying reCAPTCHA:', error);
         res.status(500).send('Error during reCAPTCHA verification');
     }
+
+    console.log(`isPublic:`)
+    console.log(isPublic)
+    // validate isPublic
+    if(!userId)
+    {
+        validatedIsPublic = true;
+    } else {
+        validatedIsPublic = validator.toBoolean(isPublic, 0)
+    }
+
+    console.log(`validated isPublic:`)
+    console.log(validatedIsPublic)
+
     //#endregion validation
 
     // Get image path if an image was uploaded
@@ -338,7 +363,7 @@ app.post('/addPost', upload.single('image'), async (req, res) => {
         content: sanitizedContent,
         genre: genre,
         imageUrl,
-        isPublic: '1',
+        isPublic: validatedIsPublic,
         ratings: [], 
         comments: []
     };

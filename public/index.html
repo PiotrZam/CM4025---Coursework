@@ -51,6 +51,9 @@
                 <label for="post-image">Upload Image:</label>
                 <input type="file" id="post-image" name="image" accept="image/*">
 
+                <label for="post-public">Make this post public:</label>
+                <input type="checkbox" id="post-public" checked>
+
                 <div class="g-recaptcha" data-sitekey="6LepqQUrAAAAAB1rEuV0ZOcTjeNbXgCqUd4NtC9E"></div>
 
                 <button type="submit">Post</button>
@@ -66,7 +69,7 @@
     
 </body>
 <script src="https://cdn.jsdelivr.net/npm/he@1.2.0/he.min.js"></script>
-<script src="allPages.js"></script>
+<script src="allPages.js" type="module"></script>
 <script src="main.js"></script>
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </html>
