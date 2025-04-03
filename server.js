@@ -79,6 +79,14 @@ function countWords(str) {
     return str.split(/\s+/).filter(Boolean).length;  // Split by whitespace and filter out empty strings
 }
 
+function convertToBool(str) {
+    const truthy = [1, "1", true, "true"]
+    if(truthy.includes(str))
+        return true;
+    else
+        return false;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////
 // Routes below:
 
@@ -231,8 +239,10 @@ app.get('/getPosts', async (req, res) => {
             query.isPublic = { $in: [true, 1, "1"] };
         }
 
+        const user = await dbo.collection("users").findOne({ _id: new ObjectId(userId) });        
         const stories = await dbo.collection("story").find(query).toArray();
 
+        // For each story perform checks and find additional data so that it's ready to be displayed on dashboard for this user
         stories.forEach(st => {
             // Caulculate total number of ratings, average rarting, and retrieve this user's rating for each story
             var numRatings = 0;
@@ -271,6 +281,12 @@ app.get('/getPosts', async (req, res) => {
             {
                 st.isOwnStory = true;
             }
+
+            if(user.readStories.includes(st._id.toString()))
+            {
+                console.log(`This story is marked as read: ${st._id}`)
+                st.isRead = true;
+            } 
         });
 
         res.status(200).json(stories); // Send the stories as a JSON response
@@ -429,18 +445,6 @@ app.delete('/deleteStory/:id', async (req, res) => {
         // First check if user is the author
         const story = await dbo.collection("story").findOne({ _id: new ObjectId(storyId) });
 
-        console.log("Story:")
-        console.log(story)
-
-        console.log("userID:")
-        console.log(userId)
-
-        console.log("authorID:")
-        console.log(story.authorID)
-
-        console.log("Are equal??:")
-        console.log(story.authorID === userId)
-
         if (!story) {
             return res.status(404).send('Story not found');
         }
@@ -559,7 +563,7 @@ app.post('/addComment', async (req, res) => {
     try {
         const dbo = await connectToDatabase();
 
-        // Convert string ID to MongoDB ObjectId
+        // get the story
         const story = await dbo.collection("story").findOne({ _id: new ObjectId(postId)});
 
         console.log(story);
@@ -584,6 +588,84 @@ app.post('/addComment', async (req, res) => {
     } catch (err) {
         console.error("Error adding comment:", err);
         res.status(500).json({ success: false, error: "Failed to add a comment" });
+    }
+});
+
+app.post('/updateReadStatus', async (req, res) => {
+    const { storyId, isRead } = req.body;  // Get data from the request body
+    var isReadBool = validator.toBoolean(isRead, 0)
+
+    console.log(`StoryID: ${storyId}`)
+
+    var userId = 0;
+    if (req.session && req.session.user)
+    {
+        userId = req.session.user.userID;
+    }
+
+    if(!storyId)
+    {
+        return res.status(400).json({ success: false, error: "story not found" }); 
+    }
+
+    if(!userId)
+    {
+        return res.status(400).json({ success: false, error: "Only logged in users can mark stories as read. Please log in first." });
+    }
+
+    try {
+        const dbo = await connectToDatabase();
+
+        // Find the user in the "users" collection
+        const user = await dbo.collection("users").findOne({ _id: new ObjectId(userId) });
+
+        if (!user) {
+            return res.status(404).send('User not found');
+        }
+
+        const story = await dbo.collection("story").findOne({ _id: new ObjectId(storyId) });
+
+        if (!story) {
+            return res.status(404).send('Story not found');
+        }
+
+        if (!user.readStories) {
+            await dbo.collection("users").updateOne(
+                { _id: new ObjectId(userId) },
+                { $set: { readStories: [] } }
+            );
+
+            user.readStories = [];
+        }
+
+        console.log("Set story as read:")
+        console.log(typeof isReadBool)
+        console.log(isReadBool)
+
+        // Update the "read stories" array
+        if (isReadBool) {
+            // Add the storyId to the list of read stories
+            if (!user.readStories.includes(storyId)) {
+                await dbo.collection("users").updateOne(
+                    { _id: new ObjectId(userId) },
+                    { $push: { readStories: storyId } }
+                );
+                console.log("story marked as read")
+                res.status(200).send({ message: 'Story marked as read' });
+            } else {
+                res.status(200).send({ message: 'Story already marked as read' });
+            }
+        } else {
+            // Remove the storyId from the user's list of read stories
+            await dbo.collection("users").updateOne(
+                { _id: new ObjectId(userId) },
+                { $pull: { readStories: storyId } }
+            );
+            res.status(200).send({ message: 'Story marked as unread' });
+        }
+    } catch (err) {
+        console.error('Error updating read status:', err);
+        res.status(500).send('Error updating read status');
     }
 });
 

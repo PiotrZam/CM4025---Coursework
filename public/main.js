@@ -96,7 +96,8 @@ $(document).ready(async function () {
                     0, // comments
                     post.imageUrl, // Add image URL to display it,
                     post.isPublic,
-                    post.isOwnStory
+                    true,   // isOwnStory
+                    false  // isRead
                 );
     
                 modifyPostAfterCreation(post, postHTML)
@@ -208,6 +209,8 @@ function fetchPosts() {
             // Clear existing posts from the the wrapper
             postsWrapper.empty();
 
+            console.log(posts)
+
             // Add each post to the the wrapper
             posts.forEach(function (post) {
                 var postHTML = createPostElement(
@@ -222,7 +225,8 @@ function fetchPosts() {
                     post.comments,
                     post.imageUrl,
                     post.isPublic,
-                    post.isOwnStory
+                    post.isOwnStory,
+                    post.isRead
                 );
                 console.log(post.thisUserRating);
 
@@ -236,7 +240,7 @@ function fetchPosts() {
     });
 }
 
-function createPostElement(_id, author, genre, date, title, content, numRatings, averageRating, comments, imageUrl, isPublic, isOwnStory) {
+function createPostElement(_id, author, genre, date, title, content, numRatings, averageRating, comments, imageUrl, isPublic, isOwnStory, isRead) {
     let commentsCount = comments ? comments.length : 0;
     let numRatingsHTML = `<p class="num-rating">Ratings No: ${numRatings}</p>`;
 
@@ -281,6 +285,11 @@ function createPostElement(_id, author, genre, date, title, content, numRatings,
                     <i class="fas fa-chevron-down"></i>
                 </button>
             </div>
+            <div class="seen-story-container">
+                <button class="seen-story-btn" onclick="markAsRead(this)">
+                    I've read this story
+                </button>
+            </div>
         </div>
 
         <div class="add-comment-form" style="display: none;">
@@ -299,8 +308,10 @@ function modifyPostAfterCreation(post, postHTML)
     // Display comments 
     if(post.comments != null && post.comments.length > 0)
     {
-            displayComments(postHTML, post.comments);
+        displayComments(postHTML, post.comments);
     }
+
+    const seenStoryButton = postHTML.find('.seen-story-btn').first();
 
     // User not logged in...
     if(!$('#loggedUserName').val())
@@ -312,6 +323,9 @@ function modifyPostAfterCreation(post, postHTML)
         // Make stars look inactive
         $(postHTML).find('.fa-star').addClass('inactive');
         $(postHTML).find('.fa-star').attr('title', 'Only logged-in users can give rating');
+
+        // Make "Story Read" button look inactive
+        seenStoryButton.addClass('inactive');
     } 
     
     // User logged in...
@@ -324,6 +338,12 @@ function modifyPostAfterCreation(post, postHTML)
             var starsHtml = starsElement.get(0);
             // Make sure stars are highlighter in line with user's rating
             highlightStars(starsHtml, post.thisUserRating);
+        }
+
+        //Set the "Story Read" button
+        if(post.isRead)
+        {
+            seenStoryButton.addClass('read');
         }
     }
 }
@@ -479,6 +499,33 @@ function highlightStars(container, rating) {
         star.classList.add("far");
         if (parseInt(star.dataset.value) <= rating) {
             star.classList.add("fas");
+        }
+    });
+}
+
+function markAsRead(button)
+{
+    // Let the server know that user has marked/unmarked the story as read
+    const storyId = $(button).closest('.post').find('.post-id').val();
+    const isRead = $(button).hasClass('read');
+
+    console.log(`StoryID: ${storyId}`)
+
+    $.ajax({
+        url: '/updateReadStatus',
+        method: 'POST',
+        data: {
+            storyId: storyId,
+            isRead: !isRead
+        },
+        success: function(response) {
+            // Toggle the button's 'read' class
+            $(button).toggleClass('read');
+            console.log(response.message);
+        },
+        error: function(err) {
+            console.error('Error updating read status:', err);
+            alert('There was an error updating the read status.');
         }
     });
 }

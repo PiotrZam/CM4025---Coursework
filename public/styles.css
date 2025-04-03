@@ -238,51 +238,6 @@ body {
 /* //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// */
 /* REACTIONS */
 
-.like-container {
-    display: flex;
-    align-items: center;
-}
-
-.like-button {
-    background-color: #3498db;
-    color: #fff;
-    padding: 8px 15px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.like-button:hover {
-    background-color: #2184b6;
-}
-
-
-.like-button {
-    background-color: #3498db;
-    color: #fff;
-    padding: 8px 15px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    display: flex;
-    align-items: center; /* Center the content vertically */
-}
-
-
-.like-button i {
-    margin-right: 5px; /* Add space between the icon and the text */
-}
-
-.likesCount {
-    margin-left: 10px; /* Add space between the like button and likes count */
-}
-
-.likesCount p {
-    font-size: 12px; /* Adjust the font size for the likes count */
-    margin: 0; /* Remove margin for cleaner appearance */
-    color: #666; /* Adjust color for better visibility */
-}
-
 .stars .fa-star {
     cursor: pointer;
 }
@@ -392,6 +347,37 @@ body {
 
 .toggle-comments {
     margin-left: 10px;
+}
+
+/* Seen Story button */
+.seen-story-container {
+    margin-left: 50px;
+}
+
+.seen-story-btn {
+    border: 2px solid darkgray;
+    color: darkgray;
+    background-color: transparent;
+    padding: 10px 20px;
+    font-size: 14px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.seen-story-btn:hover {
+    background-color: rgba(255, 255, 0, 0.1);
+    color: darkgray;
+}
+
+.seen-story-btn:focus {
+    outline: none;
+}
+
+.seen-story-btn.read {
+    background-color: white;
+    color: green;
+    border-color: green;
 }
 
 
