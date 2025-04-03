@@ -282,7 +282,7 @@ app.get('/getPosts', async (req, res) => {
                 st.isOwnStory = true;
             }
 
-            if(user.readStories.includes(st._id.toString()))
+            if((user) && user.readStories.includes(st._id.toString()))
             {
                 console.log(`This story is marked as read: ${st._id}`)
                 st.isRead = true;

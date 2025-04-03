@@ -286,7 +286,7 @@ function createPostElement(_id, author, genre, date, title, content, numRatings,
                 </button>
             </div>
             <div class="seen-story-container">
-                <button class="seen-story-btn" onclick="markAsRead(this)">
+                <button class="seen-story-btn" ${($('#loggedUserName').val()) ? 'onclick="markAsRead(this)' : ''}">
                     I've read this story
                 </button>
             </div>
@@ -326,6 +326,7 @@ function modifyPostAfterCreation(post, postHTML)
 
         // Make "Story Read" button look inactive
         seenStoryButton.addClass('inactive');
+        seenStoryButton.attr('title', 'Only logged-in users can mark stories as read');
     } 
     
     // User logged in...
