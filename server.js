@@ -221,6 +221,10 @@ app.post('/login', async (req, res) => {
 });
 
 app.get('/getPosts', async (req, res) => {
+    var readfilter = req.query.readfilter || 'all';
+
+    console.log("readfilter: " + readfilter)
+
     var userId = 0;
     var username = "";
     if (req.session && req.session.user)
@@ -229,9 +233,16 @@ app.get('/getPosts', async (req, res) => {
         username = username = req.session.user.username;
     }
 
+    // If user isn't signed in, he cannot use the readfilter
+    if(!userId)
+    {
+        readfilter = 'all'
+    }
+
     try {
         const dbo = await connectToDatabase();
 
+        const user = await dbo.collection("users").findOne({ _id: new ObjectId(userId) });
         let query = {};
 
         // If the user is not logged in, fetch only public posts
@@ -239,7 +250,26 @@ app.get('/getPosts', async (req, res) => {
             query.isPublic = { $in: [true, 1, "1"] };
         }
 
-        const user = await dbo.collection("users").findOne({ _id: new ObjectId(userId) });        
+        // if the user is logged in, consider the story read filter
+        else {
+            if(!user.readStories)
+            {
+                user.readStories = []
+            }
+            const readStories = user.readStories.map(id => new ObjectId(id));
+
+            if(readfilter === 'read')
+            {
+                query._id = { $in: readStories };
+            }
+
+            if(readfilter === 'unread')
+            {
+                query._id = { $nin: readStories };
+            }
+
+        }
+        
         const stories = await dbo.collection("story").find(query).toArray();
 
         // For each story perform checks and find additional data so that it's ready to be displayed on dashboard for this user

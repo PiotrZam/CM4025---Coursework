@@ -33,6 +33,35 @@ body {
 
 
 /* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// */
+/* FILTERS */
+
+.filter-toggle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.toggle-btn {
+    background-color: #ddd;
+    border: 1px solid #ccc;
+    padding: 10px 20px;
+    cursor: pointer;
+    flex: 1;
+    text-align: center;
+    transition: background-color 0.3s ease;
+}
+
+.toggle-btn.active {
+    background-color: #4CAF50; /* Green when active */
+    color: white;
+}
+
+.toggle-btn:hover {
+    background-color: #aaa;
+}
+
+
+/* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// */
 /* POSTS */
 
 #dashboard {

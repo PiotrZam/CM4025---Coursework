@@ -22,6 +22,9 @@ $(document).ready(async function () {
         $('#post-public').prop('disabled', false);
     }
     
+    // set up onClick event listeners for filters
+    setUpFilters();
+
      // Fetch posts when the page is loaded or refreshed
      fetchPosts();
 
@@ -198,11 +201,43 @@ function setUpLogoutLink() {
 
 //#endregion Login functions
 
-function fetchPosts() {
+function setUpFilters() {
+
+    // if user isn't logged in, don't display the "Story Read" filter
+    if(!$('#loggedUserName').val())
+    {
+         $('.seen-story-filter').hide()
+    }
+
+    // If a user is logged in add event listener
+    else 
+    {
+        $(".toggle-btn").on("click", function() {
+            const currentValue = $('#seen-story-current-filter').val()
+            const newValue = $(this).data("state");
+            if(currentValue == newValue)
+                return;
+
+            // Remove active class from all buttons
+            $(".toggle-btn").removeClass("active");
+
+            // Add active class to the clicked button
+            $(this).addClass("active");
+            $('#seen-story-current-filter').val(newValue);
+
+            console.log("Current Filter State: ", currentValue);
+            console.log("New  Filter State: ", newValue);
+
+            fetchPosts(newValue)
+        });
+    }
+}
+
+function fetchPosts(readFilterOption="all") {
 
     // Fetch posts from the server using jQuery AJAX
     $.ajax({
-        url: `/getPosts`,
+        url: `/getPosts?readfilter=${readFilterOption}`,
         type: "GET",
         dataType: "json",
         success: function (posts) {
