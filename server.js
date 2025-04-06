@@ -222,8 +222,10 @@ app.post('/login', async (req, res) => {
 
 app.get('/getPosts', async (req, res) => {
     var readfilter = req.query.readfilter || 'all';
+    var genre = req.query.genre || '';
 
     console.log("readfilter: " + readfilter)
+    console.log("genre: " + genre)
 
     var userId = 0;
     var username = "";
@@ -269,7 +271,17 @@ app.get('/getPosts', async (req, res) => {
             }
 
         }
-        
+
+        //genre filter
+        if(genre)
+        {
+            const genreArray = genre.split(',').map(g => g.trim());
+            console.log("Genre Array:")
+            console.log(genreArray)
+
+            query.genre = { $in: genreArray }
+        }
+
         const stories = await dbo.collection("story").find(query).toArray();
 
         // For each story perform checks and find additional data so that it's ready to be displayed on dashboard for this user
@@ -432,6 +444,15 @@ app.post('/addPost', upload.single('image'), async (req, res) => {
 
         if(result.acknowledged)
         {
+            console.log("Added a story!")
+            
+            if(userId)
+            {
+                newStory.isOwnStory = true;
+            } else {
+                newStory.isOwnStory = false;
+            }
+
             console.log(`Inserted a new story with ID of ${result.insertedId} `)
             console.log(newStory)    
         }

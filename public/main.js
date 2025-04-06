@@ -1,3 +1,17 @@
+// Genres:
+const genres = [
+    'Fiction',
+    'Drama',
+    'Mystery',
+    'Horror',
+    'Romance',
+    'Comedy',
+    'Fantasy',
+    'Sci-Fi',
+    'Thriller',
+    'Other'
+];
+
 // Import functions:
 //import { checkLoggedIn, setUpLogoutLink } from './allPages.js';
 
@@ -86,6 +100,8 @@ $(document).ready(async function () {
             processData: false,  // Prevent jQuery from processing data
             contentType: false,  // Let the browser set Content-Type for FormData
             success: function (post) {
+                console.log("Added a post!")
+
                 // Create new post element (ensure backend sends back the image URL)
                 var postHTML = createPostElement(
                     post._id, 
@@ -99,7 +115,7 @@ $(document).ready(async function () {
                     0, // comments
                     post.imageUrl, // Add image URL to display it,
                     post.isPublic,
-                    true,   // isOwnStory
+                    post.isOwnStory,   // isOwnStory
                     false  // isRead
                 );
     
@@ -227,17 +243,86 @@ function setUpFilters() {
 
             console.log("Current Filter State: ", currentValue);
             console.log("New  Filter State: ", newValue);
-
-            fetchPosts(newValue)
         });
     }
+
+    // Execute the below regardless of the login status:
+
+    populateGenreDropdown()
+
+    // Handle genre selection change and update hidden input
+    $(".dropdown-options input[type='checkbox']").on("change", function() {
+
+        // Get all checked checkboxes
+        const selectedGenres = [];
+        $(".dropdown-options input[type='checkbox']:checked").each(function() {
+            selectedGenres.push($(this).val());  // Push the value of each checked checkbox
+        });
+    
+        // Update the hidden field with the selected genres (joined as a comma-separated string)
+        $('#genre-current-filter').val(selectedGenres.join(','));
+    
+        // Log selected genres to console for debugging
+        console.log("Selected Genres: ", selectedGenres);
+    });
+    
+
+    // Toggle visibility of the genre dropdown
+    $('#toggle-genre').on('click', function() {
+        $('#genre-dropdown').toggle();
+    });
+
+    // hide the genre dropdown if user clicked anywhere else in the document
+    $(document).on('click', function(event) {
+        const $dropdown = $('#genre-dropdown');
+        const $toggleButton = $('#toggle-genre');
+    
+        // If the click was outside the dropdown and toggle button
+        if (
+            !$dropdown.is(event.target) &&
+            $dropdown.has(event.target).length === 0 &&
+            !$toggleButton.is(event.target)
+        ) {
+            $dropdown.hide();
+        }
+    });
+
+    // Add event listener to the "Filter" button
+    $('#apply-filters-btn').on('click', function() {
+        const selectedGenres = $('#genre-current-filter').val();
+        const seenStoryFilter = $('#seen-story-current-filter').val()
+        console.log("About to make a request using these genre filters: ", selectedGenres, " and the following seenStory mode: ", seenStoryFilter);
+
+        fetchPosts(seenStoryFilter, selectedGenres);
+    });
 }
 
-function fetchPosts(readFilterOption="all") {
+function populateGenreDropdown() {
+    const dropdownOptions = $(".dropdown-options");  // Target the dropdown container
+    dropdownOptions.empty();  // Clear any existing content
+
+    genres.forEach(genre => {
+        // Create a label with a checkbox for each genre
+        const label = $('<label></label>').html(`
+            <input type="checkbox" value="${genre}" /> ${genre}
+        `);
+
+        // Append each label to the dropdown options container
+        dropdownOptions.append(label);
+    });
+}
+
+function fetchPosts(readFilterOption="all", genresFilter="") {
+
+    var urlString = `/getPosts?readfilter=${readFilterOption}`
+    if(genresFilter)
+    {
+        urlString += `&genre=${genresFilter}`
+    } 
 
     // Fetch posts from the server using jQuery AJAX
     $.ajax({
-        url: `/getPosts?readfilter=${readFilterOption}`,
+        url: urlString,
         type: "GET",
         dataType: "json",
         success: function (posts) {
@@ -567,19 +652,6 @@ function markAsRead(button)
 }
 
 function populateGenres() {
-    const genres = [
-        'Fiction',
-        'Drama',
-        'Mystery',
-        'Horror',
-        'Romance',
-        'Comedy',
-        'Fantasy',
-        'Sci-Fi',
-        'Thriller',
-        'Other'
-    ];
-    
 
     // Get the genre select element using jQuery
     const genreSelect = $('#post-genre');

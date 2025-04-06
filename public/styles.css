@@ -35,6 +35,21 @@ body {
 /* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// */
 /* FILTERS */
 
+#filters {
+    display: flex;               /* Use flexbox layout */
+    justify-content: space-between;
+    align-items: center;         /* Align items vertically centered */
+    gap: 10px;                   /* Space between the elements */
+    padding-top: 20px;
+    padding-bottom: 20px;
+    padding-left: 50px;
+    padding-right: 50px;
+}
+
+.seen-story-filter {
+    width: 60%;
+}
+
 .filter-toggle {
     display: flex;
     justify-content: center;
@@ -60,6 +75,81 @@ body {
     background-color: #aaa;
 }
 
+
+/* Used only for genre filters at the moment */
+.filter-toggle-btn {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border: none;
+    background-color: #3498db;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+/* Hide the genre dropdown by default */
+#genre-dropdown {
+    margin-top: 20px;
+    position: absolute;            /* Position dropdown below the button */
+    top: 100%;                     /* Directly below the button */
+    left: 0;                       /* Align it to the left of the button */
+    background-color: #fff;        /* White background for dropdown */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    z-index: 1000;                 /* Ensure it shows above other elements */
+    width: 200px;                  /* Fixed width for the dropdown */
+    max-height: 300px;             /* Set max height to avoid overflowing */
+    overflow-y: auto;              /* Add scrollbars if the content exceeds max-height */
+    padding: 5px;                  /* Padding around options */
+    border-radius: 4px;            /* Rounded corners */
+}
+
+
+
+.genre-filter {
+    width: 10%;
+    display: flex;               /* Use flexbox for genre section */
+    align-items: center;         /* Align button and dropdown vertically */
+    margin-right: 10px;           /* Space between the genre filter and the "Filter" button */
+    margin-left: auto; 
+    position: relative;    
+}
+
+.dropdown-options {
+    display: flex;
+    flex-direction: column;        /* Stack the checkboxes vertically */
+}
+
+.dropdown-options label {
+    display: flex;
+    align-items: center;           /* Align checkbox and label horizontally */
+    gap: 8px;                      /* Space between checkbox and text */
+    font-size: 14px;                /* Font size for the labels */
+    padding: 5px 0;                 /* Padding around the options */
+    cursor: pointer;               /* Pointer cursor on hover */
+}
+
+.dropdown-options label:hover {
+    background-color: #f1f1f1;     /* Slight background change on hover */
+}
+
+/* Make the filter button a little smaller and more compact */
+#apply-filters-btn {
+    width: 10%;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 4px;
+    border: none;
+    background-color: #27ae60;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#apply-filters-btn:hover {
+    background-color: #2ecc71;
+}
 
 /* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// */
 /* POSTS */
