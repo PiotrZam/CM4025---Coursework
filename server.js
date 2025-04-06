@@ -811,6 +811,40 @@ app.post('/updateReadStatus', async (req, res) => {
     }
 });
 
+app.get('/top-stories', async (req, res) => {
+    console.log("Requested top stories data...")
+    const nrStories = 10;
+    try {
+        const dbo = await connectToDatabase();
+        const topStories = await dbo.collection('story').aggregate([
+            {
+                $project: {
+                    _id: 1,
+                    title: 1,
+                    author: 1,
+                    date: 1,
+                    genre: 1,
+                    isPublic: 1,
+                    ratings: { $ifNull: ["$ratings", []] }, // Ensure ratings is always an array
+                    averageRating: { $avg: { $ifNull: ["$ratings.rating", 0] } }, // Handle missing rating values
+                    numRatings: { $size: { $ifNull: ["$ratings", []] } } // Ensure numRatings is based on an array
+                }
+            },
+            {
+                $sort: { averageRating: -1, numRatings: -1, date: -1 } // Sort by highest average rating
+            },
+            {
+                $limit: 10 // Get top 10 stories
+            }
+        ]).toArray();
+
+        res.json(topStories);
+    } catch (error) {
+        console.error("Error fetching top stories:", error);
+        res.status(500).json({ error: "Failed to fetch top stories" });
+    }
+});
+
 // Graceful Shutdown (Close database Connection on Exit)
 process.on("SIGINT", async () => {
     await mongoClient.close();
