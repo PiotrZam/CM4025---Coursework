@@ -42,6 +42,10 @@ const port = process.env.PORT;
 // Set up static file serving for the "public" directory
 app.use(express.static(path.join(__dirname, 'public')));
 
+// EJS 
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
 // Add the body-parser middleware to handle JSON and form data
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -217,6 +221,93 @@ app.post('/login', async (req, res) => {
     } catch (error) {
         console.error('Error during login:', error);
         res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+
+app.get('/getSingleStory', async (req, res) => {
+    var storyID = req.query.storyID || ''
+
+    console.log("storyID: " + storyID); 
+
+    if(!storyID)
+    {
+        res.status(400).json({ success: false, error: "Incorrect request. Story ID needs to be specified" });        
+    }
+
+    var userId = 0;
+    var username = "";
+    if (req.session && req.session.user)
+    {
+        userId = req.session.user.userID;
+        username = username = req.session.user.username;
+    }
+
+    try {
+        const dbo = await connectToDatabase();
+
+        const user = await dbo.collection("users").findOne({ _id: new ObjectId(userId) });
+        const story = await dbo.collection("story").findOne({ _id: new ObjectId(storyID) });
+
+        if(!story)
+        {
+            res.status(404).json({ success: false, error: "Story could not be found." });
+        }
+
+        if(!user && !story.isPublic)
+        {
+            res.status(404).json({ success: false, error: "Story could not be retrieved. It is private and available only to logged-in users." });
+        }
+
+        // Caulculate total number of ratings, average rarting, and retrieve this user's rating for each story
+        var numRatings = 0;
+        var averageRating = 0;
+        var thisUserRating = 0;
+
+        if (story.ratings && story.ratings.length > 0) {
+            numRatings = story.ratings.length;
+            var totalRating = story.ratings.reduce((acc, rating) => acc + rating.rating, 0);
+            averageRating = totalRating / numRatings;
+
+            if(userId)
+            {   // Find the rating given by this user
+                const userRating = story.ratings.find(rating => rating.userId === userId);
+                thisUserRating = userRating ? userRating.rating : 0;
+            }
+        }
+        
+        story.numRatings = numRatings;
+        story.averageRating = averageRating;
+        story.thisUserRating = thisUserRating;
+        story.loggedUserName = (user ? user.username : "")
+
+        // Include URL to the story picture
+        if (story.imageUrl && story.imageUrl != "") {
+            story.imageUrl = `${req.protocol}://${req.get("host")}${st.imageUrl}`;
+        } else {
+            story.imageUrl = "";
+        }
+
+        if(story.genre == null || story.genre == undefined)
+        {
+            story.genre = "Unknown";
+        }
+
+        if((userId) && userId === story.authorID)
+        {
+            story.isOwnStory = true;
+        }
+
+        if((user) && user.readStories.includes(story._id.toString()))
+        {
+            console.log(`This story is marked as read: ${story._id}`)
+            story.isRead = true;
+        } 
+
+        res.render('story', { story });
+    } catch (err) {
+        console.error("Error fetching story:", err);
+        res.status(500).json({ success: false, error: "Failed to fetch story" });
     }
 });
 

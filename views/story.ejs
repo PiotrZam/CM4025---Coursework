@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Homepage</title>
+    <title>Story Page</title>
     <link rel="stylesheet" type="text/css" href="styles.css">
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -10,7 +10,7 @@
 </head>
 <body>
     <div id="header">
-        <h1>Homepage</h1>
+        <h1>Story Page</h1>
     </div>
 
     <nav id="menu">
@@ -32,10 +32,16 @@
         </div>
     </div>  
 
-    <div>
-        <h4>Homepage Placeholder</h4>
-    </div>    
+    <div id="single-story-dashboard">
+        <div id="posts-wrapper">  
+        </div>
+    </div>
 </body>
+
+<script>
+    var story = '<%- JSON.stringify(story) %>'
+</script>
 <script src="https://cdn.jsdelivr.net/npm/he@1.2.0/he.min.js"></script>
+<script src="story.js"></script>
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </html>
