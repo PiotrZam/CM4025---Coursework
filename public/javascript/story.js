@@ -1,4 +1,4 @@
-// Importing login status functions
+// Importing functions:
 import {checkLoggedIn, setUpLogoutLink, genres_enum, createPostElement, modifyPostAfterCreation, deleteStory, toggleAddCommentBox, toggleComments, addComment, getCurrentDate, generateCommentHTML, displayComments, rateStory, highlightStars, markAsRead} from './allPages.js'
 
 // Story element passed from the server

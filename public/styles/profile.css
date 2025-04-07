@@ -3,7 +3,7 @@
 /* PROFILE PAGE: */
 
 /* General styling */
-.prof-container {
+/* .prof-container {
     background-color: #f9f9f9;
     border-radius: 10px;
     padding: 20px;
@@ -22,14 +22,14 @@
     font-size: 28px;
     color: #333;
     margin: 0;
-}
+} */
 
 /* Profile stats container */
-.prof-list {
+/* .prof-list {
     display: flex;
     flex-direction: column;
     gap: 15px;
-}
+} */
 
 .profile-stats-row {
     display: flex;
@@ -106,16 +106,6 @@
     margin-top: 5px;
     grid-row: 1/2;
     grid-column: 1/2;
-}
-
-/* Rating stars (filled or empty) */
-.prof-usr-star {
-    color: #ddd;
-    align-self: center;
-}
-
-.prof-usr-star.filled {
-    color: #f39c12; /* Yellow color for filled stars */
 }
 
 /* Title of the story, aligned with ranking and stars in the same row */

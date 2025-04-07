@@ -1,3 +1,5 @@
+// Login page relies on its own login-status maintenance functions
+
 $(document).ready(function () {
     
     // Check if user is logged in

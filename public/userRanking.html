@@ -33,10 +33,32 @@
         </div>
     </div>
 
-    <div id="current-user-rating"></div>
+    <div id="user-ranking-toggle-ctn">
+        <div id="user-ranking-toggle">
+            <input type="hidden" id="top-users-current-filter" value="authors" />
+            <button class="toggle-btn active" data-state="authors">Top Authors</button>
+            <button class="toggle-btn" data-state="readers">Top Readers</button>
+        </div>
     </div>
 
-    <div id="author-ranking-list"></div>
+    <div id="auth-rank-cont" class="dashbd-cont">
+        <div id="auth-rank-hdr" class="dashbd-hdr">
+            <h2>Top Rated Authors</h2>
+        </div>
+
+        <div id="auth-rank-lst" class="dashbd-lst">
+
+        </div>
+    </div>
+
+    <div id="reader-rank-cont" class="dashbd-cont" hidden>
+        <div id="reader-rank-hdr" class="dashbd-hdr">
+            <h2>Most Active Readers</h2>
+        </div>
+
+        <div id="reader-rank-lst" class="dashbd-lst">
+
+        </div>
     </div>
 </body>
 <script src="/javascript/allPages.js" type="module"></script>

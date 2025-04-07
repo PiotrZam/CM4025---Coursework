@@ -384,6 +384,7 @@ export function markAsRead(button)
 
 //#endregion Post Creation Functions
 
+// Making the following functions window-level, so that they can be used by inline onClick event listeners declared in html code (in createPostElement() )
 window.markAsRead = markAsRead
 window.toggleAddCommentBox = toggleAddCommentBox
 window.deleteStory = deleteStory

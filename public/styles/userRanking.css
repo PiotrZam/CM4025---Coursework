@@ -1,0 +1,171 @@
+/* This page also uses container styling from allPages.css */
+
+.auth-rank-row {
+    width: 100%;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: 1fr 5fr; 
+    grid-template-rows: auto auto auto auto auto auto;  
+    /* gap: 5px;  */
+    margin-bottom: 30px;
+    /* padding: 15px; */
+    /* border: 1px solid #ddd; */
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+
+.auth-rank-row p,
+.auth-rank-row h2 {
+    margin: 0;
+}
+
+.topusr-rank {
+    grid-column: 1;
+    grid-row: 1/7;
+
+    height: 100%;
+    font-size: 4rem;
+    box-sizing: border-box;
+    align-content: center;
+    margin: 0 20px;
+}
+
+.topusr-username {
+    grid-column: 2;
+    grid-row: 1/3;
+    margin: 0;
+}
+
+.topusr-stars {
+    grid-column: 2;
+    grid-row: 3;
+}
+
+.topusr-avg-rating {
+    grid-column: 2;
+    grid-row: 4;
+}
+
+.topusr-avg-rating h2 {
+    font-size: clamp(1.5rem, 5vw, 4rem);
+    height: 100%;
+}
+
+.topusr-num-stor {
+    grid-column: 2;
+    grid-row: 5;
+}
+
+.topusr-num-rat {
+    grid-column: 2;
+    grid-row: 6;
+}
+
+
+
+/* //////////////////////////////////////////////////////////////////// */
+/* Readers */
+
+.reader-rank-row {
+    width: 100%;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: 1fr 5fr; 
+    grid-template-rows: auto auto auto auto auto auto;  
+    /* gap: 5px;  */
+    margin-bottom: 30px;
+    /* padding: 15px; */
+    /* border: 1px solid #ddd; */
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+
+.reader-rank-row p,
+.reader-rank-row h2 {
+    margin: 0;
+}
+
+.reader-rank {
+    grid-column: 1;
+    grid-row: 1/7;
+
+    height: 100%;
+    font-size: 4rem;
+    box-sizing: border-box;
+    align-content: center;
+    margin: 0 20px;
+}
+
+.reader-username {
+    grid-column: 2;
+    grid-row: 2/4;
+    margin: 0;
+}
+
+.reader-tot-rat-gvn {
+    grid-column: 2;
+    grid-row: 4;
+}
+
+.reader-num-comm {
+    grid-column: 2;
+    grid-row: 5;
+}
+
+
+/* /////////////////////////////////////////////////////////////////////////////////////////// */
+/* TOGGLE FILTERS */
+
+
+#user-ranking-toggle-ctn {
+    display: flex;               /* Use flexbox layout */
+    justify-content: space-between;
+    align-items: center;         /* Align items vertically centered */
+    gap: 10px;                   /* Space between the elements */
+    padding-top: 20px;
+    padding-bottom: 20px;
+    padding-left: 50px;
+    padding-right: 50px;
+}
+
+#user-ranking-toggle {
+    width: 60%;
+    display: flex;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.toggle-btn {
+    background-color: #ddd;
+    border: 1px solid #ccc;
+    padding: 10px 20px;
+    cursor: pointer;
+    flex: 1;
+    text-align: center;
+    transition: background-color 0.3s ease;
+}
+
+.toggle-btn.active {
+    background-color: #4CAF50; /* Green when active */
+    color: white;
+}
+
+.toggle-btn:hover {
+    background-color: #aaa;
+}
+
+
+/* Used only for genre filters at the moment */
+.filter-toggle-btn {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border: none;
+    background-color: #3498db;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+/* /////////////////////////////////////////////////////////////////////////////////////////// */

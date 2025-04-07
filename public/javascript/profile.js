@@ -45,17 +45,17 @@ $(document).ready(async function() {
 
                     // Add full stars
                     for (let i = 0; i < fullStars; i++) {
-                        starsContainer.append($('<i>', { class: 'fas fa-star prof-usr-star filled' }));
+                        starsContainer.append($('<i>', { class: 'fas fa-star rating-star filled' }));
                     }
 
                     // Add half stars
                     if (halfStars > 0) {
-                        starsContainer.append($('<i>', { class: 'fas fa-star-half-alt prof-usr-star filled' }));
+                        starsContainer.append($('<i>', { class: 'fas fa-star-half-alt rating-star filled' }));
                     }
 
                     // Add empty stars
                     for (let i = fullStars + halfStars; i < totalStars; i++) {
-                        starsContainer.append($('<i>', { class: 'fas fa-star prof-usr-star' }));
+                        starsContainer.append($('<i>', { class: 'fas fa-star rating-star' }));
                     }
 
                     storyDiv.append(starsContainer);
@@ -69,7 +69,7 @@ $(document).ready(async function() {
                     storyDiv.append(titleLink);
 
                     // Ranking details below the stars
-                    const ratingInfo = $('<div>', { class: 'prof-usr-story-rating' })
+                    const ratingInfo = $('<div>', { class: 'prof-usr-story-rating-info' })
                         .html(`Avg: ${story.averageRating.toFixed(1)}<br/>${story.numRatings} Ratings`);
                         storyDiv.append(ratingInfo);
 
@@ -100,4 +100,3 @@ $(document).ready(async function() {
    
 });
 
-//////////

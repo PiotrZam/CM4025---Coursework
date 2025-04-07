@@ -948,6 +948,185 @@ app.get('/currentUsersStories', async (req, res) => {
     }
 });
 
+app.get('/topAuthors', async (req, res) => {
+    console.log("Requested top ranked users...")
+
+    const numAuthors = 10;
+
+    try {
+        const dbo = await connectToDatabase();
+
+        var topUsers = await dbo.collection('story').aggregate([
+            // consider only stories that have an author
+            {
+                $match: {
+                  authorID: { $exists: true, $ne: 0 }
+                }
+            },
+            // Calculate average rating and number of ratings for each story
+            {
+              $addFields: {
+                avgStoryRating: { $avg: { $ifNull: ["$ratings.rating", 0] } },
+                numRatings: { $size: { $ifNull: ["$ratings", []] } }
+              }
+            },
+            // Group by authorID 
+            {
+              $group: {
+                _id: "$authorID",
+                avgAuthorRating: { $avg: "$avgStoryRating" },
+                totalRatings: { $sum: "$numRatings" },
+                totalStories: { $sum: 1 }
+              }
+            },
+            // Sort by avg rating desc, then by total number of ratings desc
+            {
+              $sort: { avgAuthorRating: -1, totalRatings: -1 }
+            },
+            {
+              $limit: numAuthors
+            }
+        ]).toArray();
+
+        const authorIDs = topUsers.map(author => new ObjectId(author._id));
+
+        // Get usernames for these users
+        const users = await dbo.collection('users')
+        .find({ _id: { $in: authorIDs } })
+        .project({ _id: 1, username: 1 })
+        .toArray();
+
+        console.log("users")
+        console.log(users)
+
+        topUsers.forEach((au) => {
+            var user = users.find(u => u._id.toString() === au._id.toString());
+
+            if(user)
+                au.username = user.username;
+        });
+
+        // Assign users ranks (records are already ordered based on popularity, we just need to add these indexes to the array)
+        topUsers = topUsers.map((user, index) => ({
+            ...user,
+            rank: index + 1 
+        }));
+
+        console.log(topUsers)
+
+        // Get only the users that have username
+        topUsers = topUsers.filter(u => (u.username) );
+
+          console.log("top users:")
+          console.log(topUsers)
+
+        res.json(topUsers);
+    } catch (error) {
+        console.error("Error fetching top user ratings:", error);
+        res.status(500).json({ error: "Failed to fetch top user ratings" });
+    }
+});
+
+app.get('/topReaders', async (req, res) => {
+    console.log("Requested top ranked readers...")
+
+    const numReaders = 10;
+
+    try {
+        const dbo = await connectToDatabase();
+
+        // Get the top readers (people who rated stories the most)
+        var topReaders = await dbo.collection('story').aggregate([
+            // Unwind the ratings array to deal with each rating individually
+            { $unwind: "$ratings" },
+            //Filter out ratings where userID is 0
+            {
+              $match: {
+                "ratings.userId": { $ne: 0 }
+              }
+            },
+            // Group by ratings.userID and count how many ratings each user has made
+            {
+              $group: {
+                _id: "$ratings.userId",
+                totalRatingsGiven: { $sum: 1 },
+              }
+            },
+            { $sort: { totalRatingsGiven: -1 } },
+            { $limit: numReaders }
+        ]).toArray();
+          
+
+        // Testing - filter out fake IDs
+        topReaders = topReaders.filter(r => r._id.toString().length > 6)
+
+        console.log("Top Readers: ")
+        console.log(topReaders)
+
+        var readersIDs = topReaders.map(reader => new ObjectId(reader._id));
+        
+        // At the moment comments array stores userID as string, rather than ObjectID -- needs addressing!
+        var readersIDsString = topReaders.map(reader => reader._id.toString());
+
+        // Get comment count left by these readers works similarly as the query above
+        const readersComments = await dbo.collection('story').aggregate([
+            { $unwind: "$comments" },
+            {
+              $match: {
+                "comments.userId": { $in: readersIDsString }
+              }
+            },
+            {
+              $group: {
+                _id: "$comments.userId",   
+                totalComments: { $sum: 1 } 
+              }
+            },
+            { $sort: { totalComments: -1 } },
+            { $limit: numReaders }
+          ]).toArray();
+
+        // Get usernames for these users
+        const readers = await dbo.collection('users')
+        .find({ _id: { $in: readersIDs } })
+        .project({ _id: 1, username: 1 })
+        .toArray();
+
+        // Add usernames and comment counts
+        topReaders.forEach((r) => {
+            var user = readers.find(u => u._id.toString() === r._id.toString());
+
+            if(user)
+                r.username = user.username;
+
+            var comments = readersComments.find(c => c._id.toString() === r._id.toString())
+            r.commentsCount = (comments) ? comments.totalComments : 0;
+        });
+
+        // Get only the users that have username
+        topReaders = topReaders.filter(u => (u.username) );
+
+        // Sprt using first total ratings given, then total comments
+        var sortedReaders = topReaders.sort((a, b) => {
+            return b.totalRatingsGiven - a.totalRatingsGiven || b.totalComments - a.totalComments;
+        });
+
+        // Assign users ranks (now that we have our array sorted)
+        sortedReaders = sortedReaders.map((reader, index) => ({
+            ...reader,
+            rank: index + 1 
+        }));
+
+        console.log("Top Readers: ")
+        console.log(sortedReaders)
+
+        res.json(sortedReaders);
+    } catch (error) {
+        console.error("Error fetching top readers ratings:", error);
+        res.status(500).json({ error: "Failed to fetch top readers ratings" });
+    }
+});
+
 
 // Graceful Shutdown (Close database Connection on Exit)
 process.on("SIGINT", async () => {

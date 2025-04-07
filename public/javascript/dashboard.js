@@ -1,8 +1,5 @@
-// Importing login status functions
-import {checkLoggedIn, setUpLogoutLink, genres_enum, createPostElement, modifyPostAfterCreation, deleteStory, toggleAddCommentBox, toggleComments, addComment, getCurrentDate, generateCommentHTML, displayComments, rateStory, highlightStars, markAsRead} from './allPages.js'
-
 // Import functions:
-//import { checkLoggedIn, setUpLogoutLink } from './allPages.js';
+import {checkLoggedIn, setUpLogoutLink, genres_enum, createPostElement, modifyPostAfterCreation, deleteStory, toggleAddCommentBox, toggleComments, addComment, getCurrentDate, generateCommentHTML, displayComments, rateStory, highlightStars, markAsRead} from './allPages.js'
 
 // dashboard.js
 const addPostButton = $("#add-post-button");
