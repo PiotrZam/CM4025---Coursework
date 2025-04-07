@@ -1,5 +1,5 @@
 // Import functions:
-import {checkLoggedIn, setUpLogoutLink, genres_enum, createPostElement, modifyPostAfterCreation, deleteStory, toggleAddCommentBox, toggleComments, addComment, getCurrentDate, generateCommentHTML, displayComments, rateStory, highlightStars, markAsRead} from './allPages.js'
+import {checkLoggedIn, setUpLogoutLink, genres_enum, createPostElement, modifyPostAfterCreation, deleteStory, toggleAddCommentBox, toggleComments, addComment, getCurrentDate, generateCommentHTML, displayComments, rateStory, highlightStars, markAsRead, claimStory} from './allPages.js'
 
 // dashboard.js
 const addPostButton = $("#add-post-button");
@@ -87,6 +87,15 @@ $(document).ready(async function () {
             contentType: false,  // Let the browser set Content-Type for FormData
             success: function (post) {
                 console.log("Added a post!")
+                var confirmationText = "Added a story!"
+
+                if(post.claimCode)
+                {
+                    confirmationText += `\n\nYou can use the following code to claim the story as a logged in user in the future:`
+                    + `\n${post.claimCode}`
+                }
+
+                alert(confirmationText);
 
                 var postInput = {
                     _id: post._id,

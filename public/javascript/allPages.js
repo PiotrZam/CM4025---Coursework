@@ -147,6 +147,12 @@ export function createPostElement(post) {
                     I've read this story
                 </button>
             </div>
+    
+            <div class="claim-story-container">
+                <button class="claim-story-btn" onclick="claimStory(this)">
+                        Claim This Story
+                </button>
+            </div>
         </div>
 
         <div class="add-comment-form" style="display: none;">
@@ -202,6 +208,21 @@ export function modifyPostAfterCreation(post, postHTML)
         if(post.isRead)
         {
             seenStoryButton.addClass('read');
+        }
+    }
+
+    // Handle "Claim Story" buttons:
+    // If the post has a user author, remove the Claim Story button
+    if(post.author.toLowerCase() !== "anonymous")
+    {
+        postHTML.find('.claim-story-container').remove();
+    } 
+    // If the user is not logged in, make the button inactive
+    else {
+        if(!$('#loggedUserName').val()) {
+            postHTML.find('.claim-story-btn')
+            .addClass("inactive")   // Make the button inactive
+            .removeAttr('onclick');          // Remove onClick event listener
         }
     }
 }
@@ -384,9 +405,129 @@ export function markAsRead(button)
 
 //#endregion Post Creation Functions
 
+export function claimStory(el) {
+    const post = $(el).closest('.post');
+    const storyId = $(post).find('.post-id').val();
+    console.log("storyId: ", storyId);
+
+    const postsWrapper = $("#posts-wrapper");
+
+    // Create the window asking for the claim code
+    var claimStoryDiv =  $('<div>', {
+        id: "claim-story-ctn"
+    });
+    
+    // Instruction to be displayed to the user
+    var instructionDiv = $('<div>', {
+        id: "claim-story-instr",
+    })
+
+    var instructionText = $('<h4>', {
+        text: "Input the Claim Code below to claim the story",
+    })
+    instructionDiv.append(instructionText);
+    claimStoryDiv.append(instructionDiv);
+
+    // Input box
+    var claimCodeInputBox = $('<input>', {
+        id: "claim-story-input"
+    })
+    claimStoryDiv.append(claimCodeInputBox);
+
+    var errorText = $('<div>', {
+        id: "claim-story-error-text"
+    })
+    claimStoryDiv.append(errorText);
+
+    // Buttons: cancel and submit
+    var buttons = $('<div>', {
+        id: "claim-story-buttons"
+    })
+
+    var cancelButton = $('<button>', {
+        id: "claim-story-cancel-btn",
+        text: "Cancel"
+    })
+
+    cancelButton.on('click', function() {
+        postsWrapper.removeClass("blur");
+        claimStoryDiv.hide();
+        claimStoryDiv.remove();
+    });
+    buttons.append(cancelButton);
+
+    var submitButton = $('<button>', {
+        id: "claim-story-submit-btn",
+        text: "Submit"
+    })
+
+    submitButton.on('click', function() {
+        var userInput = $('#claim-story-input').val()
+        var errorMsgElement = $('#claim-story-error-text');
+        errorMsgElement.val("");
+
+        const regex = /^[a-zA-Z0-9]*$/;
+        var message = "";
+
+
+        if(!userInput)
+        {
+            message = "Code not provided";
+        } else if(!regex.test(userInput))
+        {
+            message = "Code can only contain alphanumerical characters"
+        }
+
+        if(message)
+        {
+            errorMsgElement.text(message);
+        }
+        else {
+            console.log("Calling server, user's input: ", userInput.toString())
+
+            // Call server 
+            $.ajax({
+                url: "/claimStory",
+                type: "POST",
+                data: {
+                    userInput: userInput,
+                    storyId: storyId
+                },
+                success: function(response) {
+                    alert("Successfully claimed a story!")
+                    postsWrapper.removeClass("blur");
+                    claimStoryDiv.hide();
+                    claimStoryDiv.remove();
+                },
+                error: function(xhr, status, error) {
+                    console.log("Error response:")
+                    console.log(xhr);
+                    alert(`Error occured when trying to claim a story:\n${xhr.responseJSON.error || error}`);
+                    postsWrapper.removeClass("blur");
+                    claimStoryDiv.hide();
+                    claimStoryDiv.remove();
+                }
+            });
+        }
+
+        
+    });
+    buttons.append(submitButton);
+
+    claimStoryDiv.append(buttons);
+
+    // Blur the background
+    postsWrapper.addClass("blur");
+
+    //Show the dialog window
+    $('.dashboard').append(claimStoryDiv);
+
+}
+
 // Making the following functions window-level, so that they can be used by inline onClick event listeners declared in html code (in createPostElement() )
 window.markAsRead = markAsRead
 window.toggleAddCommentBox = toggleAddCommentBox
 window.deleteStory = deleteStory
 window.toggleComments = toggleComments
 window.addComment = addComment
+window.claimStory = claimStory

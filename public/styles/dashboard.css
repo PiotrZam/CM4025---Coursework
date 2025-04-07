@@ -347,12 +347,14 @@
     display: flex;
     align-items: center;
     margin-top: 10px;
+    /* justify-content: space-between;  */
 }
 
 .like-container,
 .comment-container {
     display: flex;
     align-items: center;
+    margin-left: 25px;
 }
 
 .comment-button {
@@ -445,11 +447,13 @@
 }
 
 /* Seen Story button */
-.seen-story-container {
-    margin-left: 50px;
+.seen-story-container,
+.claim-story-container {
+    margin-left: 25px;
 }
 
-.seen-story-btn {
+.seen-story-btn,
+.claim-story-btn {
     border: 2px solid darkgray;
     color: darkgray;
     background-color: transparent;
@@ -460,12 +464,14 @@
     transition: all 0.3s ease;
 }
 
-.seen-story-btn:hover {
+.seen-story-btn:hover,
+.claim-story-btn:hover {
     background-color: rgba(255, 255, 0, 0.1);
     color: darkgray;
 }
 
-.seen-story-btn:focus {
+.seen-story-btn:focus,
+.claim-story-btn:focus {
     outline: none;
 }
 
@@ -475,11 +481,56 @@
     border-color: green;
 }
 
-.seen-story-btn.inactive {
+.seen-story-btn.inactive,
+.claim-story-btn.inactive {
     color: #a1a1a1;
     cursor: not-allowed;
     background-color: white;
 }
 
+
+/* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// */
+/* CLAIM STORY */
+
+#claim-story-ctn {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+#claim-story-error-text {
+    color: red;
+    font-size: 14px;
+    font-family: 'Roboto', sans-serif;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+#claim-story-buttons button {
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 15px 15px 15px 0px;
+}
+
+#claim-story-cancel-btn {
+    background-color: red;
+}
+
+#claim-story-submit-btn {
+    background-color: #4CAF50;
+}
+
+#claim-story-submit-btn {
+    background-color: #45a049;
+}
 
 /* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// */

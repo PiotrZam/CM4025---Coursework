@@ -6,6 +6,7 @@ const multer = require('multer');   // for uploading images
 const axios = require('axios'); 
 const dotenv = require('dotenv').config();
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
@@ -90,6 +91,17 @@ function convertToBool(str) {
     else
         return false;
 }
+
+// This function generates a random alpanumerical code of specified length
+function generateCode(length = 8) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    for (let i = 0; i < length; i++) {
+      const randomIndex = crypto.randomInt(0, chars.length);
+      code += chars[randomIndex];
+    }
+    return code;
+  }
 
 ///////////////////////////////////////////////////////////////////////////////////
 // Routes below:
@@ -512,7 +524,6 @@ app.post('/addPost', upload.single('image'), async (req, res) => {
     const sanitizedTitle = xss(title);
     const sanitizedContent = xss(content);
 
-
     var newStory = {
         authorID: userId,
         author: authorName, // You may modify this to get the actual author from the request
@@ -525,6 +536,14 @@ app.post('/addPost', upload.single('image'), async (req, res) => {
         ratings: [], 
         comments: []
     };
+
+    if(!userId)
+    {
+        // Generate code that the user can use to claim the story in the future
+        const claimStoryCode = generateCode(12);
+        newStory.claimCode = claimStoryCode;            
+    }
+    
 
     try {
         var dbo = await connectToDatabase();
@@ -1124,6 +1143,96 @@ app.get('/topReaders', async (req, res) => {
     } catch (error) {
         console.error("Error fetching top readers ratings:", error);
         res.status(500).json({ error: "Failed to fetch top readers ratings" });
+    }
+});
+
+app.post('/claimStory', async (req, res) => {
+    var { storyId, userInput } = req.body;
+
+    var claimCode = userInput;
+    var userId = 0;
+    var username = "";
+
+    console.log("Claiming a story...")
+    console.log("User input: ", claimCode)
+    console.log("Story ID: ", storyId)
+
+    if (req.session && req.session.user)
+    {
+        userId = req.session.user.userID;
+        username = req.session.user.username;
+    }
+
+    // Validation
+    if(!userId)
+    {
+        return res.status(400).json({ success: false, error: "Only logged in users can claim stories. Please log in first." });
+    }
+
+    if(!claimCode)
+    {
+        return res.status(400).json({ success: false, error: "The claim code wasn't sent. Please try again." });
+    }
+
+    try {
+        const dbo = await connectToDatabase();
+
+        // get the user
+        const user = await dbo.collection("users").findOne({ _id: new ObjectId(userId)});
+        if(!user)
+        {
+            return res.status(400).json({ success: false, error: "User not found" });
+        }
+
+        // get the story
+        const story = await dbo.collection("story").findOne({ _id: new ObjectId(storyId)});
+
+        console.log(story);
+
+        if (!story) {
+            return res.status(404).json({ success: false, error: "Story not found" });
+        }
+
+        if (!story.claimCode || story.authorID) {
+            return res.status(403).json({ success: false, error: "This story cannot be claimed" });
+        }
+
+        console.log("Actual Claim Code: ", story.claimCode)
+        console.log("Sent Claim Code: ", claimCode)
+
+        const areClaimCodesSame = (claimCode === story.claimCode)
+        console.log("Claim Codes same? : ", areClaimCodesSame)
+
+        if(!areClaimCodesSame)
+        {
+            return res.status(401).json({ success: false, error: "Provided Claim Code is incorrect." });
+        }
+
+        const result = await dbo.collection("story").updateOne(
+            { _id: new ObjectId(storyId) },
+            { $set: { 
+                    authorID: user._id.toString(),
+                    author: user.username
+                },
+                $unset: { claimCode: "" } 
+            }
+        );
+
+        if (!result.acknowledged) {
+            return res.status(500).json({ success: false, error: "Database operation failed" });
+          }
+
+        if (result.modifiedCount === 0) {
+            // Failed to update the story
+            return res.status(400).json({ success: false, error: "Story could not be claimed." });
+        }
+
+        console.log(`Successfully claimed the following story: ${story._id}`)
+        res.status(200).json({ success: true, message: "Story claimed successfully!\nYou can now see it on your profile page." });
+
+    } catch (err) {
+        console.error("Error claiming story:", err);
+        res.status(500).json({ success: false, error: "Failed to claim a story" });
     }
 });
 
