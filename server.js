@@ -303,7 +303,7 @@ app.get('/getSingleStory', async (req, res) => {
             story.isOwnStory = true;
         }
 
-        if((user) && user.readStories.includes(story._id.toString()))
+        if((user) && (user.readStories) && user.readStories.includes(story._id.toString()))
         {
             story.isRead = true;
         } 

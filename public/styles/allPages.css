@@ -37,7 +37,7 @@ body {
 /* LOGIN DETAILS */
 
 #login-fields {
-    position: fixed;
+    position: absolute;
     top: 20px;
     right: 20px;
     font-size: 18px;
