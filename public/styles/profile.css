@@ -1,0 +1,185 @@
+
+/* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// */
+/* PROFILE PAGE: */
+
+/* General styling */
+.prof-container {
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    padding: 20px;
+    width: 80%;
+    max-width: 800px;
+    margin: 20px auto;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.prof-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.prof-header h2 {
+    font-size: 28px;
+    color: #333;
+    margin: 0;
+}
+
+/* Profile stats container */
+.prof-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.profile-stats-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    background-color: #fff;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+}
+
+.profile-stats-row p {
+    font-size: 16px;
+    color: #444;
+    margin: 0;
+    font-weight: 500;
+}
+
+.profile-stats-row div {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+/* Rating stars container */
+#profile-stats-rating-stars {
+    display: flex;
+    gap: 5px;
+}
+
+#profile-stats-rating-stars i {
+    color: #ff9800;
+    font-size: 20px;
+}
+
+/* Rating value container */
+.profile-stats-val {
+    font-size: 18px;
+    color: #333;
+    font-weight: bold;
+}
+
+
+/* Hover effects */
+.profile-stats-row:hover {
+    background-color: #fafafa;
+    border-color: #ddd;
+    cursor: pointer;
+}
+
+
+
+/* Profile Stories */ 
+.prof-usr-story {
+    width: 100%;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: 1fr 5fr; /* The first column is for ranking and stars, the second for the title */
+    grid-template-rows: auto auto;  /* Two rows: first for ranking and title, second for details */
+    gap: 15px; /* Space between the rows and columns */
+    margin-bottom: 30px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+
+/* Rating stars container */
+.prof-usr-story-stars {
+    display: flex;
+    justify-content: flex-start;
+    align-content: center;
+    gap: 5px;
+    margin-top: 5px;
+    grid-row: 1/2;
+    grid-column: 1/2;
+}
+
+/* Rating stars (filled or empty) */
+.prof-usr-star {
+    color: #ddd;
+    align-self: center;
+}
+
+.prof-usr-star.filled {
+    color: #f39c12; /* Yellow color for filled stars */
+}
+
+/* Title of the story, aligned with ranking and stars in the same row */
+.prof-usr-story-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    align-self: center; /* Ensures title is vertically centered */
+    grid-row: 1/2;
+    grid-column: 2/3;
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.3s ease, text-decoration 0.3s ease;
+}
+
+.prof-usr-story-title:hover {
+    color: #007bff; /* Change to a nice blue on hover */
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+/* Average rating and number of ratings (below stars) */
+.prof-usr-story-rating-info {
+    font-size: 14px;
+    color: #666;
+    grid-row: 2/3;
+    grid-column: 1/2;
+}
+
+/* Details section under the title (author, date, genre) */
+.prof-usr-story-other-det {
+    grid-row: 2/3;
+    grid-column: 2/3;
+    margin-top: 10px;
+    display: flex;
+    flex-direction: row;
+}
+
+/* Genre styling */
+.prof-usr-story-genre {
+    font-size: 14px;
+    color: #666;
+    margin-top: 5px;
+    margin-right: 30px;
+    min-width: 20%;
+}
+
+/* Author styling */
+.prof-usr-story-author {
+    font-size: 14px;
+    color: #666;
+    margin-right: 15px;
+    align-self: end;
+    min-width: 15%;
+}
+
+/* Date styling */
+.prof-usr-story-date {
+    font-size: 14px;
+    color: #666;
+    margin-top: 5px;
+    min-width: 15%;
+    margin-left: auto;
+}
+
+
+/* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// */

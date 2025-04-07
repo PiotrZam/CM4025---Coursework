@@ -9,7 +9,7 @@ $(document).ready(async function() {
     console.log(`Logged in: ${loggedIn}`)
 
     $.ajax({
-        url: '/top-stories', // Make sure this matches your API endpoint
+        url: '/topStories', // Make sure this matches your API endpoint
         method: 'GET',
         success: function(data) {
             data.forEach((story, index) => {

@@ -1,0 +1,129 @@
+
+/* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// */
+/* TOP STORIES */
+
+#top-stories-header {
+    padding: 20px;
+    text-align: center;
+}
+
+
+#top-stories-list {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 20px;
+}
+
+/* Main container for each story */
+.top-story-container {
+    width: 100%;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: 1fr 2fr 10fr; /* The first column is for ranking and stars, the second for the title */
+    grid-template-rows: auto auto;  /* Two rows: first for ranking and title, second for details */
+    gap: 15px; /* Space between the rows and columns */
+    margin-bottom: 30px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+
+/* Ranking number styling */
+.top-stories-rankingno {
+    font-size: 30px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    grid-row: 1/2;
+    grid-column: 1/2;
+}
+
+/* Rating stars container */
+.top-stories-stars {
+    display: flex;
+    justify-content: flex-start;
+    align-content: center;
+    gap: 5px;
+    margin-top: 5px;
+    grid-row: 1/2;
+    grid-column: 2/3;
+}
+
+/* Rating stars (filled or empty) */
+.top-star {
+    color: #ddd;
+    align-self: center;
+}
+
+.top-star.filled {
+    color: #f39c12; /* Yellow color for filled stars */
+}
+
+/* Title of the story, aligned with ranking and stars in the same row */
+.top-stories-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    align-self: center; /* Ensures title is vertically centered */
+    grid-row: 1/2;
+    grid-column: 3/4;
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.3s ease, text-decoration 0.3s ease;
+}
+
+.top-stories-title:hover {
+    color: #007bff; /* Change to a nice blue on hover */
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+/* Average rating and number of ratings (below stars) */
+.top-stories-rating-info {
+    font-size: 14px;
+    color: #666;
+    grid-row: 2/3;
+    grid-column: 2/3;
+}
+
+/* Details section under the title (author, date, genre) */
+.top-stories-other-details {
+    grid-row: 2/3;
+    grid-column: 3/4;
+    margin-top: 10px;
+    display: flex;
+    flex-direction: row;
+}
+
+/* Genre styling */
+.top-stories-genre {
+    font-size: 14px;
+    color: #666;
+    margin-top: 5px;
+    margin-right: 30px;
+    min-width: 20%;
+}
+
+/* Author styling */
+.top-stories-author {
+    font-size: 14px;
+    color: #666;
+    margin-right: 15px;
+    align-self: end;
+    min-width: 15%;
+}
+
+/* Date styling */
+.top-stories-date {
+    font-size: 14px;
+    color: #666;
+    margin-top: 5px;
+    min-width: 15%;
+    margin-left: auto;
+}
+
+
+
+/* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// */

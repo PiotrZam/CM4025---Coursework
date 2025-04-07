@@ -94,6 +94,11 @@ function convertToBool(str) {
 ///////////////////////////////////////////////////////////////////////////////////
 // Routes below:
 
+// landing page
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+});
+
 // Backend: Express Route for Checking Login Status
 app.get("/checkLoggedIn", (req, res) => {
     if (req.session && req.session.user) {
@@ -300,7 +305,6 @@ app.get('/getSingleStory', async (req, res) => {
 
         if((user) && user.readStories.includes(story._id.toString()))
         {
-            console.log(`This story is marked as read: ${story._id}`)
             story.isRead = true;
         } 
 
@@ -417,7 +421,6 @@ app.get('/getPosts', async (req, res) => {
 
             if((user) && user.readStories.includes(st._id.toString()))
             {
-                console.log(`This story is marked as read: ${st._id}`)
                 st.isRead = true;
             } 
         });
@@ -811,7 +814,7 @@ app.post('/updateReadStatus', async (req, res) => {
     }
 });
 
-app.get('/top-stories', async (req, res) => {
+app.get('/topStories', async (req, res) => {
     console.log("Requested top stories data...")
     const nrStories = 10;
     try {
@@ -844,6 +847,107 @@ app.get('/top-stories', async (req, res) => {
         res.status(500).json({ error: "Failed to fetch top stories" });
     }
 });
+
+app.get('/currentUsersStories', async (req, res) => {
+    console.log("Requested current user's stories...")
+
+    var userId = 0;
+    if (req.session && req.session.user)
+    {
+        userId = req.session.user.userID;
+    }
+
+    if(!userId)
+    {
+        return res.status(400).json({ success: false, error: "User not logged in" });
+    }
+
+    try {
+        const dbo = await connectToDatabase();
+
+        const user = await dbo.collection("users").findOne({ _id: new ObjectId(userId) });
+
+        if (!user) {
+            return res.status(404).send('User not found');
+        }
+
+        console.log("useID: ", user._id)
+
+        const userStories = await dbo.collection('story').aggregate([
+            {
+                $match: { authorID: userId } // Filter stories by author ID
+            },
+            {
+                $project: {
+                    _id: 1,
+                    title: 1,
+                    author: 1,
+                    date: 1,
+                    genre: 1,
+                    averageRating: { $avg: { $ifNull: ["$ratings.rating", 0] } }, // Handle missing rating values
+                    numRatings: { $size: { $ifNull: ["$ratings", []] } } // Ensure numRatings is based on an array
+                }
+            },
+            {
+                $sort: { date: -1 } // Sort by highest average rating
+            }
+        ]).toArray();
+
+        // Records that don't have ratings returned nulls as avg rating. We need to take care of this:
+        userStories.forEach(story => {
+            story.averageRating = story.averageRating ?? 0;
+        });
+
+        const numStories = userStories.length;
+        const numStoriesWithRatings = userStories.filter(story => story.numRatings > 0).length;
+        const ratingsReceived = userStories.reduce((sum, story) => sum + story.numRatings, 0);
+
+        // Average story rating
+        const totalAverageRating = userStories.reduce((sum, story) => sum + story.averageRating, 0);
+        const avgStoryRating = numStories > 0 ? totalAverageRating / numStoriesWithRatings : 0; // consider only stories that have rating
+
+        // Now get the number of read stories
+        if(!user.readStories)
+        {
+            user.readStories = [];
+        }
+        const numStoriesRead = user.readStories.length;
+
+        //And the number of ratings given:
+        const ratingsGiven = await dbo.collection('story').aggregate([
+            {
+              $unwind: "$ratings"  
+            },
+            {
+              $match: { "ratings.userId": userId } 
+            },
+            {
+              $count: "totalRatingsGiven"  
+            }
+        ]).toArray();
+
+        const totalRatingsGiven = ratingsGiven.length > 0 ? ratingsGiven[0].totalRatingsGiven : 0;
+        console.log("Ratings Given: ", totalRatingsGiven)
+          
+
+        var output = {
+            numStories: numStories,
+            avgStoryRating: avgStoryRating,
+            numStoriesRead: numStoriesRead,
+            ratingsReceived: ratingsReceived,
+            ratingsGiven: totalRatingsGiven,
+            stories: userStories
+        }
+
+        console.log(output);
+
+        res.json(output);
+    } catch (error) {
+        console.error("Error fetching user rating:", error);
+        res.status(500).json({ error: "Failed to fetch user rating" });
+    }
+});
+
 
 // Graceful Shutdown (Close database Connection on Exit)
 process.on("SIGINT", async () => {

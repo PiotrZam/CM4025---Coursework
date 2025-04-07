@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <link rel="stylesheet" type="text/css" href="/styles/allPages.css">
+    <link rel="stylesheet" type="text/css" href="/styles/profile.css">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div id="header">
+        <h1>Your Stories</h1> 
+    </div>
+
+    <nav id="menu">
+        <a href="dashboard.html"><i class="fa-solid fa-house"></i></a>
+        <a href="newStory.html"><i class="fa-solid fa-square-plus"></i></a>
+        <a href="userRanking.html"><i class="fa-solid fa-user-group"></i></a>
+        <a href="storyRanking.html"><i class="fa-solid fa-bell"></i></a>
+        <a href="profile.html"><i class="fa-solid fa-user"></i></a>
+        <a href="login.html"><i class="fa-solid fa-gear"></i></a>
+    </nav>
+
+    <div id="login-fields">
+        <input type="hidden" id="loggedUserName" value="" />
+        <div id="user-status">
+            <span id="user-status-text">Log in</span>
+        </div>
+        <div id="logout-link" style="display:none;">
+            <a href="#" id="logout">Log out</a>
+        </div>
+    </div>
+
+    <div id="profile-stats-container" class="prof-container">
+        <div id="profile-stats-header" class="prof-header">
+            <h2>Your Statistics</h2>
+        </div>
+        <div id="profile-stats" class="prof-list">
+            <div id="profile-stats-rating" class="profile-stats-row prof-row">
+                <p>Average Story Rating:</p>
+                <div id="profile-stats-rating-stars"></div>
+                <div id="profile-stats-rating-val" class="profile-stats-val"></div>
+            </div>
+            <div id="profile-stats-num-stories" class="profile-stats-row prof-row">
+                <p>Uploaded Stories:</p>
+                <div id="profile-stats-num-stories-val" class="profile-stats-val"></div>
+            </div>
+            <div id="profile-stats-read-stories" class="profile-stats-row prof-row">
+                <p>Read Stories:</p>
+                <div id="profile-stats-read-stories-val" class="profile-stats-val"></div>
+            </div>
+            <div id="profile-stats-ratings-rec" class="profile-stats-row prof-row">
+                <p>Received Ratings:</p>
+                <div id="profile-stats-ratings-rec-val" class="profile-stats-val"></div>
+            </div>
+            <div id="profile-stats-ratings-gvn" class="profile-stats-row prof-row">
+                <p>Given Ratings:</p>
+                <div id="profile-stats-ratings-gvn-val" class="profile-stats-val"></div>
+            </div> 
+        </div>
+    </div>
+
+    <div id="cur-usr-stor-wrapper" class="prof-container">
+        <div id="cur-usr-stor-header" class="prof-header">
+            <h2>Your Stories</h2>
+        </div>
+        <div id="cur-usr-stor-list" class="prof-list">
+
+        </div>
+    </div>
+
+</body>
+<script src="/javascript/allPages.js" type="module"></script>
+<script src="/javascript/profile.js" type="module"></script>
+</html>

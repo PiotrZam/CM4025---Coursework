@@ -4,7 +4,7 @@ import {checkLoggedIn, setUpLogoutLink, genres_enum, createPostElement, modifyPo
 // Import functions:
 //import { checkLoggedIn, setUpLogoutLink } from './allPages.js';
 
-// main.js
+// dashboard.js
 const addPostButton = $("#add-post-button");
 const postForm = $("#post-form");
 const dashboard = $(".dashboard");
