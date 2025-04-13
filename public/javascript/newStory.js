@@ -63,8 +63,10 @@ $(document).ready(async function () {
 
                 alert(confirmationText);
             },
-            error: function () {
-                alert("Error adding post. Please try again.");
+            error: function(xhr, status, error) {
+                var errorString = `Error adding post:\n${xhr.responseJSON.error || error}`;
+                console.log(errorString)
+                alert(errorString);
             }
         });
     });

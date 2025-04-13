@@ -159,6 +159,7 @@
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     height: auto; /* Allow the height to adjust dynamically based on content */
+    cursor: default;
 }
 
 .contents {
@@ -167,10 +168,41 @@
     word-wrap: break-word; /* Ensure text wraps within the post container */
 }
 
+/* Show full content toggle button */
+/* Wrapper to center the toggle button horizontally */
+.toggle-wrapper {
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Optional: center vertically if you need */
+    margin-top: 10px; /* Adjust if needed */
+  }
+  
+  /* Styling for the toggle button */
+  .toggle-full-content {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    text-align: center;
+  }
+  
+  .toggle-full-content i {
+    font-size: 2rem; /* Make the icon larger */
+    color: #333; /* Set the default color to black */
+    transition: transform 0.2s ease;
+  }
+  
+  /* Hover effect for icon */
+  .toggle-full-content:hover i {
+    transform: scale(1.2);
+    color: #000; /* Change to a darker black on hover */
+  }
+  
+  
+
 .post-header {
     display: flex;
     justify-content: space-between;
     margin-bottom: 10px;
+    align-items: center;
 }
 
 .author {
@@ -208,14 +240,14 @@
 }
 
 
-/* Common styles for the public/private label */
-.public-status {
-    display: inline-block;         /* Makes it inline-block to adjust with content */
-    padding: 5px 10px;             /* Padding for better visual appearance */
-    border-radius: 12px;           /* Rounded corners */
-    color: white;                  /* White text */
-    font-weight: bold;             /* Bold text */
-    font-size: 14px;               /* Slightly smaller text */
+.genre {
+    /* font-weight: bold; */
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.9rem;
+    color: #999;
 }
 
 /* Styles for public posts */
@@ -228,18 +260,27 @@
     background-color: #dc6f6f; /* A less bright red background for private */
 }
 
-.delete-story {
+.delete-story,
+.public-status {
     display: inline-block;         /* Makes it inline-block to adjust with content */
-    padding: 5px 10px;             /* Padding for better visual appearance */
+    padding: 10px 15px;             /* Padding for better visual appearance */
     border-radius: 12px;           /* Rounded corners */
     font-weight: bold;             /* Bold text */
     font-size: 14px;               /* Slightly smaller text */
+    color: white;
 }
+
 
 .delete-story.dels-active {
     background-color: darkgray;
     color: white;
     cursor: pointer;
+}
+
+.dels-active:hover {
+    background-color: #505050; /* or use a darker grey */
+    border-radius: 8px;
+    transform: translateY(-2px); /* slight lift effect */
 }
 
 

@@ -79,8 +79,10 @@ $(document).ready(async function() {
                 $('#top-stories-list').append(topStoryContainer);
             });
         },
-        error: function(error) {
-            console.log("Error fetching stories:", error);
+        error: function(xhr, status, error) {
+            var errorString = `Error occured when trying to fetch stories:\n${xhr.responseJSON.error || error}`;
+            console.log(errorString)
+            alert(errorString);
         }
     });
 });

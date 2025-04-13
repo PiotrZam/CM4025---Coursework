@@ -159,8 +159,10 @@ function fetchPosts(readFilterOption="all", genresFilter="") {
                 postsWrapper.append(postHTML);
             });
         },
-        error: function () {
-            console.error("Error fetching posts from the server.");
+        error: function(xhr, status, error) {
+            var errorString = `Error occured when trying to claim a story:\n${xhr.responseJSON.error || error}`;
+            console.log(errorString)
+            alert(errorString);
         }
     });
 }

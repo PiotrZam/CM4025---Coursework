@@ -17,7 +17,10 @@ $(document).ready(async function() {
                 $('#signup-login-form-wrapper').show();
             }
         },
-        error: function() {
+        error: function(xhr, status, error) {
+            var errorString = `Error Checking logged in status:\n${xhr.responseJSON.error || error}`;
+            console.log(errorString)
+            alert(errorString);
             clearUsername();
         }
     });
@@ -77,8 +80,10 @@ function bindButtons() {
                 alert("You are now logged out")
                 window.location.href = 'profile.html'; // Redirect to login page
             },
-            error: function () {
-                alert('Failed to log out');
+            error: function(xhr, status, error) {
+                var errorString = `Error logging out:\n${xhr.responseJSON.error || error}`;
+                console.log(errorString)
+                alert(errorString);
             }
         });
     });
@@ -113,9 +118,11 @@ function bindButtons() {
                 grecaptcha.reset(); // Reset the reCAPTCHA widget
                 window.location.href = 'profile.html'; // Redirect
             },
-            error: function (error) {
+            error: function(xhr, status, error) {
+                var errorString = `Error occured when trying to sign up:\n${xhr.responseJSON.error || error}`;
+                console.log(errorString)
+                alert(errorString);
                 $('#sign-up-password').val(''); // clear the password field
-                alert(error.responseJSON.error);
             }
         });
     });
@@ -146,10 +153,13 @@ function bindButtons() {
                 $('#login-form')[0].reset(); // This will clear the form fields
                 window.location.href = 'profile.html'; // Redirect
             },
-            error: function (error) {
+            error: function(xhr, status, error) {
+                var errorString = `Error occured when trying to log in:\n${xhr.responseJSON.error || error}`;
+                console.log(errorString)
+                alert(errorString);
+
                 $('#sign-in-password').val(''); // clear the password field
                 // Handle error response
-                alert(error.responseJSON.error); // Show error message if something went wrong
             }
         });
     });
@@ -241,8 +251,10 @@ function getUserContent() {
                 });
             }
         },
-        error: function(error) {
-            console.log("Error fetching stories:", error);
+        error: function(xhr, status, error) {
+            var errorString = `Error occured when fetching user data:\n${xhr.responseJSON.error || error}`;
+            console.log(errorString)
+            alert(errorString);
         }
     });
 }

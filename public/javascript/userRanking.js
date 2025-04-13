@@ -112,8 +112,10 @@ $(document).ready(async function() {
                 topUsersListDiv.append(userDiv);
             });
         },
-        error: function () {
-            console.error("Error fetching top authors from the server.");
+        error: function(xhr, status, error) {
+            var errorString = `Error occured when trying to fetch top authors data:\n${xhr.responseJSON.error || error}`;
+            console.log(errorString)
+            alert(errorString);
         }
     });
    
@@ -159,8 +161,10 @@ $(document).ready(async function() {
                 topUsersListDiv.append(userDiv);
             });
         },
-        error: function () {
-            console.error("Error fetching top authors from the server.");
+        error: function(xhr, status, error) {
+            var errorString = `Error occured when trying to fetch top readers data:\n${xhr.responseJSON.error || error}`;
+            console.log(errorString)
+            alert(errorString);
         }
     });
 });

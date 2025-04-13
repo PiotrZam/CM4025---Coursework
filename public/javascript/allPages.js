@@ -35,7 +35,11 @@ export function checkLoggedIn()
                 }
                 resolve(response);
             },
-            error: function() {
+            error: function(xhr, status, error) {
+                console.log("Error response:")
+                console.log(xhr);
+                alert(`Error occured:\n${xhr.responseJSON.error || error}`);
+
                 clearUsername();
                 resolve(false);
             }
@@ -89,8 +93,10 @@ export function setUpLogoutLink() {
                 alert("You are now logged out")
                 window.location.href = 'profile.html'; // Redirect
             },
-            error: function () {
-                alert('Failed to log out');
+            error: function(xhr, status, error) {
+                    console.log("Error response:")
+                    console.log(xhr);
+                    alert(`Error occured when trying to log out:\n${xhr.responseJSON.error || error}`);
             }
         });
     });
@@ -109,6 +115,7 @@ export function getCurrentDate() {
 export function createPostElement(post) {
     let commentsCount = post.comments ? post.comments.length : 0;
     let numRatingsHTML = `<p class="num-rating">Ratings No: ${post.numRatings}</p>`;
+    let showToggle = post.content && post.content.length > 300;
 
     const postElement = $("<div>").addClass("post");
 
@@ -125,7 +132,15 @@ export function createPostElement(post) {
         <h2 class="title"><a href=/getSingleStory?storyID=${post._id}>${he.escape(post.title)}</a></h2>
 
         ${post.imageUrl ? `<img src="${post.imageUrl}" alt="Story Image" class="post-image">` : ''}
-        <p class="contents">${he.escape(post.content)}</p>
+
+        ${showToggle ? `
+            <p class="contents-preview">${he.escape(post.content.slice(0, 300))}...</p>
+            <p class="contents-full" style="display: none;">${he.escape(post.content)}</p>
+            <div class="toggle-full-content" onclick="toggleContent(this)">
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            ` : `<p class="contents-full">${he.escape(post.content)}</p>
+        `}
 
         <div class="reactions-container">
             <div class="rating-container">
@@ -174,6 +189,23 @@ export function createPostElement(post) {
 
     return postElement;
 }
+
+function toggleContent(button) {
+    const preview = $(button).siblings('.contents-preview');
+    const full = $(button).siblings('.contents-full');
+    const icon = $(button).find('i');
+
+    if (full.is(':visible')) {
+        full.hide();
+        preview.show();
+        icon.removeClass('fa-chevron-up').addClass('fa-chevron-down');
+    } else {
+        full.show();
+        preview.hide();
+        icon.removeClass('fa-chevron-down').addClass('fa-chevron-up');
+    }
+}
+
 
 export function modifyPostAfterCreation(post, postHTML)
 {   
@@ -253,9 +285,10 @@ export function deleteStory(storyId) {
             $(`.post .post-id[value='${storyId}']`).closest('.post').remove();
             alert("Post deleted successfully.");
         },
-        error: function(err) {
-            console.error('Error deleting post:', err);
-            alert("There was an error deleting the post.");
+        error: function(xhr, status, error) {
+            console.log("Error response:")
+            console.log(xhr);
+            alert(`Error occured when trying to delete this post:\n${xhr.responseJSON.error || error}`);
         }
     });
 }
@@ -334,9 +367,10 @@ export function addComment(buttonElement) {
             //Clear the text area:
             $(commentContent).val("");
         },
-        error: function (error) {
-            // Handle the error response from the server
-            console.error('Error adding comment:', error);
+        error: function(xhr, status, error) {
+            console.log("Error occured when adding a comment:")
+            console.log(xhr);
+            alert(`Error occured when trying to add a comment:\n${xhr.responseJSON.error || error}`);
         }
     });
 }
@@ -413,9 +447,11 @@ export function markAsRead(button)
             $(button).toggleClass('read');
             console.log(response.message);
         },
-        error: function(err) {
+        error: function(xhr, status, error) {
+            console.log("Error response:")
+            console.log(xhr);
+            alert(`Error occured when updating the read status:\n${xhr.responseJSON.error || error}`);
             console.error('Error updating read status:', err);
-            alert('There was an error updating the read status.');
         }
     });
 }
@@ -520,6 +556,7 @@ export function claimStory(el) {
                     console.log("Error response:")
                     console.log(xhr);
                     alert(`Error occured when trying to claim a story:\n${xhr.responseJSON.error || error}`);
+
                     postsWrapper.removeClass("blur");
                     claimStoryDiv.hide();
                     claimStoryDiv.remove();
@@ -548,3 +585,4 @@ window.deleteStory = deleteStory
 window.toggleComments = toggleComments
 window.addComment = addComment
 window.claimStory = claimStory
+window.toggleContent = toggleContent
