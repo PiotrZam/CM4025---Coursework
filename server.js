@@ -304,7 +304,7 @@ app.get('/getSingleStory', async (req, res) => {
 
         // Include URL to the story picture
         if (story.imageUrl && story.imageUrl != "") {
-            story.imageUrl = `${req.protocol}://${req.get("host")}${st.imageUrl}`;
+            story.imageUrl = `${req.protocol}://${req.get("host")}${story.imageUrl}`;
         } else {
             story.imageUrl = "";
         }
@@ -324,6 +324,8 @@ app.get('/getSingleStory', async (req, res) => {
             story.isRead = true;
         } 
 
+        console.log(story)
+        
         res.render('story', { story });
     } catch (err) {
         console.error("Error fetching story:", err);
@@ -1111,14 +1113,16 @@ app.get('/topAuthors', async (req, res) => {
         .project({ _id: 1, username: 1 })
         .toArray();
 
-        console.log("users")
-        console.log(users)
+        console.log("top user")
+        console.log(topUsers)
 
         topUsers.forEach((au) => {
             var user = users.find(u => u._id.toString() === au._id.toString());
 
             if(user)
                 au.username = user.username;
+
+            au.avgAuthorRating = Number(au.avgAuthorRating).toFixed(2)
         });
 
         // Assign users ranks (records are already ordered based on popularity, we just need to add these indexes to the array)

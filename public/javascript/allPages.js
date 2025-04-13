@@ -113,7 +113,7 @@ export function createPostElement(post) {
             <span class="date">${post.date}</span>
         </div>
 
-        <h2 class="title">${he.escape(post.title)}</h2>
+        <h2 class="title"><a href=/getSingleStory?storyID=${post._id}>${he.escape(post.title)}</a></h2>
 
         ${post.imageUrl ? `<img src="${post.imageUrl}" alt="Story Image" class="post-image">` : ''}
         <p class="contents">${he.escape(post.content)}</p>
