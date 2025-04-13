@@ -185,6 +185,16 @@
     color: #333;
 }
 
+.title a {
+    text-decoration: none;
+    color: #333;
+}
+
+.title a:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
 .contents {
     color: #666;
 }

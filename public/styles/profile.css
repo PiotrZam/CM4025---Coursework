@@ -166,7 +166,6 @@
 }
 
 .prof-usr-story-title:hover {
-    color: #007bff; /* Change to a nice blue on hover */
     text-decoration: underline;
     cursor: pointer;
 }

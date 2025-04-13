@@ -16,21 +16,41 @@ body {
 }
 
 #menu {
+    display: flex;
+    justify-content: center; 
     background-color: rgb(77, 2, 65);
+    padding: 10px 0;
+    gap: 10px;
+  }
+  
+  #menu a {
     color: white;
     text-align: center;
-    padding: 15px;
-    display: flex;
-    justify-content: center;
-    flex-grow: 1; /* Allow the navigation to take up available space */
-}
-
-#menu a {
     text-decoration: none;
-    color: white;
-    margin: 0 15px;
-}
-
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    transition: background-color 0.3s, transform 0.2s;
+  }
+  
+  #menu a span {
+    opacity: 0;
+    font-size: 1rem;
+    margin-top: 5px;
+    transition: opacity 0.2s ease;
+  }
+  
+  #menu a:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* subtle highlight */
+    border-radius: 8px;
+    transform: translateY(-2px); /* slight lift effect */
+  }
+  
+  #menu a:hover span {
+    opacity: 1; /* reveal text */
+  }
 
 
 /* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// */
@@ -55,7 +75,18 @@ body {
 
 #user-status-text {
     cursor: pointer;
+    
 }
+
+#user-status {
+    padding: 10px;
+}
+
+#user-status:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* subtle highlight */
+    border-radius: 8px;
+    transform: translateY(-2px); /* slight lift effect */
+  }
 
 #login-message {
     font-size: 3em;
