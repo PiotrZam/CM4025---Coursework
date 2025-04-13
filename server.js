@@ -8,6 +8,10 @@ const dotenv = require('dotenv').config();
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 
+const dayjs = require('dayjs');
+const customParseFormat = require('dayjs/plugin/customParseFormat');
+dayjs.extend(customParseFormat);
+
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 
@@ -395,13 +399,27 @@ app.get('/getPosts', async (req, res) => {
 
         const stories = await dbo.collection("story").find(query).toArray();
 
+        // array to store authors' scores. We'll need them for the recommender system. Stories from authors with good rankings should be displayed higher up
+        var authors = {};
+
         // For each story perform checks and find additional data so that it's ready to be displayed on dashboard for this user
         stories.forEach(st => {
             // Caulculate total number of ratings, average rarting, and retrieve this user's rating for each story
+            // Also calculate the score for each story, which will determine how high up on the dashboard it will be displayed
             var numRatings = 0;
             var averageRating = 0;
             var thisUserRating = 0;
 
+            var storyScore = 0;
+            var recencyScore = 0;
+            var affinityScore = 0;
+
+            // Get recency score based on how long ago the story was added:
+            const storyDate = dayjs(st.date, 'DD/MM/YYYY');
+            const differenceInDays = storyDate.diff(dayjs(), 'day');
+            recencyScore = 1 / (1 + Math.abs(differenceInDays));
+
+            // Calculate story ratings
             if (st.ratings && st.ratings.length > 0) {
                 numRatings = st.ratings.length;
                 var totalRating = st.ratings.reduce((acc, rating) => acc + rating.rating, 0);
@@ -417,6 +435,21 @@ app.get('/getPosts', async (req, res) => {
             st.numRatings = numRatings;
             st.averageRating = averageRating;
             st.thisUserRating = thisUserRating;
+
+            // Add data to "authors" array
+            if(st.authorID) {
+                if (!authors[st.authorID]) {
+                    authors[st.authorID] = {
+                        author: st.author,
+                        authorID: st.authorID,
+                        totalRating: 0,
+                        storyCount: 0
+                    };
+                    }
+                
+                authors[st.authorID].totalRating += averageRating;
+                authors[st.authorID].storyCount += 1;
+            }
 
             // Include URL to the story picture
             if (st.imageUrl && st.imageUrl != "") {
@@ -439,9 +472,44 @@ app.get('/getPosts', async (req, res) => {
             {
                 st.isRead = true;
             } 
+
+            storyScore += recencyScore ? recencyScore : 0;
+            storyScore += affinityScore;
+            st.storyScore = storyScore;
         });
 
-        res.status(200).json(stories); // Send the stories as a JSON response
+        // calculate average score per author
+       for (var authorID in authors)
+       {
+            const author = authors[authorID];
+            var averageAuthRating = 0;
+            if(author.storyCount > 0)
+            {
+                averageAuthRating = author.totalRating / author.storyCount;
+            }
+            author.averageAuthRating = averageAuthRating;
+       }
+        
+        console.log("authors: ")
+        console.log(authors)
+
+        // Add author score to  story score:
+        const updatedStories = stories.map(story => {
+            const authorData = authors[story.authorID];
+            const authorAvgRating = Number(authorData ? authorData.averageAuthRating : 0);
+          
+            return {
+              ...story,
+              // Author score has a impac factor of 0.2 when calculating story score
+              storyScore: Number(story.storyScore) + (authorAvgRating * 0.2) 
+            };
+        });
+
+        // Sprt stories based on story score before returning
+        updatedStories.sort((a, b) => b.storyScore - a.storyScore);
+        console.log(updatedStories)
+
+        res.status(200).json(updatedStories); // Send the stories as a JSON response
     } catch (err) {
         console.error("Error fetching stories:", err);
         res.status(500).json({ success: false, error: "Failed to fetch stories" });
