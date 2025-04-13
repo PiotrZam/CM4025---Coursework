@@ -33,10 +33,13 @@ $(document).ready(async function () {
     modifyPostAfterCreation(passedStory, postHTML);
     postsWrapper.append(postHTML);
 
-    // Attach event delegation to the parent container (ratings)
-    $(postsWrapper).on("click", ".fa-star", function () {
-        console.log("Clicked to rate!!!");
+    if(loggedIn && !passedStory.isOwnStory)
+    {
+        // Attach event delegation to the parent container (ratings)
+        $(postsWrapper).on("click", ".fa-star", function () {
+        console.log("Clicked to rate");
         rateStory(this);
     });
+    }
 });
 // End of document.ready

@@ -751,12 +751,20 @@ app.post('/rateStory', async (req, res) => {
     try {
         const dbo = await connectToDatabase();
 
+        const user = await dbo.collection("users").findOne({ _id: new ObjectId(userId) });
+        if (!user) {
+            return res.status(404).json({ success: false, error: "Error. User not found." });
+        }
+
         // Convert string ID to MongoDB ObjectId
         const story = await dbo.collection("story").findOne({ _id: new ObjectId(storyId)});
 
         if (!story) {
             return res.status(404).json({ success: false, error: "Story not found" });
         }
+
+        if(story.authorID = userId)
+            return res.status(400).json({ success: false, error: "User cannot rate their own stories" });
 
         // If the ratings array doesn't exist, initialize it
         if (!story.ratings) {
@@ -779,6 +787,15 @@ app.post('/rateStory', async (req, res) => {
                 { _id: new ObjectId(storyId) },
                 { $push: { ratings: { userId: userId, rating: rating } } }
             );
+
+            // Add the story to user's read stories
+            if (!user.readStories.includes(storyId.toString())) {
+                await dbo.collection("users").updateOne(
+                    { _id: new ObjectId(userId) },
+                    { $push: { readStories: storyId } }
+                );
+            }
+
             console.log(`Added a new rating of ${rating} for story with id: ${story._id}`)
             res.status(200).json(story);
         }

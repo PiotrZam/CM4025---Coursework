@@ -66,7 +66,7 @@ function clearUsername()
     $('#user-status-text').text('Log in');
     $('#logout-link').hide();
     $('#loggedUserName').val(''); // clear hidden input field
-    
+
     $('#user-status').removeClass('signedIn');
     $('#user-status').addClass('signedOut');
 
@@ -118,7 +118,7 @@ export function createPostElement(post) {
             <span class="author">${he.escape(post.author)}</span>
             <span class="genre">${he.escape(post.genre)}</span>
             ${post.isPublic ? '<span class="public-status ps-public">Public</span>' : '<span class="public-status ps-private">Private</span>'}
-            ${post.isOwnStory ? `<span class="delete-story dels-active" onclick="deleteStory('${post._id}')">Delete</span>` : '<span class="delete-story"></span>'}
+            ${post.isOwnStory ? `<span class="delete-story dels-active" onclick="deleteStory('${post._id}')">Delete Story</span>` : '<span class="delete-story"></span>'}
             <span class="date">${post.date}</span>
         </div>
 
@@ -152,7 +152,7 @@ export function createPostElement(post) {
                 </button>
             </div>
             <div class="seen-story-container">
-                <button class="seen-story-btn" ${($('#loggedUserName').val()) ? 'onclick="markAsRead(this)' : ''}">
+                <button class="seen-story-btn" ${($('#loggedUserName').val() && !post.isOwnStory) ? 'onclick="markAsRead(this)' : ''}">
                     I've read this story
                 </button>
             </div>
@@ -203,20 +203,28 @@ export function modifyPostAfterCreation(post, postHTML)
     
     // User logged in...
     else {
-        //Highlight stars if ratings was given
-        const starsElement = postHTML.find('.stars').first();
-        if(post.thisUserRating > 0)
-        {
-            //convert jquery element to html element
-            var starsHtml = starsElement.get(0);
-            // Make sure stars are highlighter in line with user's rating
-            highlightStars(starsHtml, post.thisUserRating);
-        }
 
-        //Set the "Story Read" button
-        if(post.isRead)
-        {
-            seenStoryButton.addClass('read');
+        // User is the author of this story:
+        if(post.isOwnStory) {
+            // Make stars look inactive
+            $(postHTML).find('.fa-star').addClass('inactive');
+            $(postHTML).find('.fa-star').attr('title', 'You cannot rate your own stories');
+
+            // Remove  "Story Read" button 
+            seenStoryButton.remove();
+
+        } else {
+            //Highlight stars if ratings was given
+            const starsElement = postHTML.find('.stars').first();
+            if(post.thisUserRating > 0)
+            {
+                //convert jquery element to html element
+                var starsHtml = starsElement.get(0);
+                // Make sure stars are highlighter in line with user's rating
+                highlightStars(starsHtml, post.thisUserRating);
+            }
+
+            
         }
     }
 
