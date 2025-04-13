@@ -52,6 +52,12 @@ function setUsername(username)
 
     // Remove the click event handler for "Log in" text if user is logged in
     $('#user-status-text').off('click');
+
+    $('#user-status-text').css('cursor', 'default');
+    // Remove on hover effect
+    $('#user-status').addClass('signedIn');
+    $('#user-status').removeClass('signedOut');
+
 }
 
 function clearUsername()
@@ -60,6 +66,9 @@ function clearUsername()
     $('#user-status-text').text('Log in');
     $('#logout-link').hide();
     $('#loggedUserName').val(''); // clear hidden input field
+    
+    $('#user-status').removeClass('signedIn');
+    $('#user-status').addClass('signedOut');
 
     // Add a click listener to the "Log in" text
     $('#user-status-text').on('click', function() {

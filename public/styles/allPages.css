@@ -78,11 +78,13 @@ body {
     
 }
 
-#user-status {
+#user-status,
+#logout-link {
     padding: 10px;
 }
 
-#user-status:hover {
+#user-status.signedOut:hover,
+#logout-link:hover {
     background-color: rgba(255, 255, 255, 0.1); /* subtle highlight */
     border-radius: 8px;
     transform: translateY(-2px); /* slight lift effect */

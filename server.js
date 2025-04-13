@@ -1049,7 +1049,7 @@ app.get('/currentUsersStories', async (req, res) => {
 
         var output = {
             numStories: numStories,
-            avgStoryRating: avgStoryRating,
+            avgStoryRating: Number(avgStoryRating).toFixed(2),
             numStoriesRead: numStoriesRead,
             ratingsReceived: ratingsReceived,
             ratingsGiven: totalRatingsGiven,

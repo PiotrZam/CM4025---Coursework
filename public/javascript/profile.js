@@ -38,6 +38,11 @@ function setUsername(username)
         $('#loggedUserName').val(username); // set to hidden input field
         // login-message-text
         
+        $('#user-status-text').css('cursor', 'default');
+        // Remove on hover effect
+        $('#user-status').addClass('signedIn');
+        $('#user-status').removeClass('signedOut');
+
         $('#user-status-text').off('click'); // Remove the click event handler for "Log in"
 }
 
@@ -50,6 +55,9 @@ function clearUsername()
         $('#login-message-text').text(``);
         $('#login-message').hide();
         $('#loggedUserName').val(``);
+
+        $('#user-status').removeClass('signedIn');
+        $('#user-status').addClass('signedOut');
 
         $('#user-status-text').on('click', function() { // Add a click listener to the "Log in" text
             window.location.href = 'profile.html';
