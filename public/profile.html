@@ -76,9 +76,26 @@
         </div>
     </div>
 
-    <div id="signup-login-form-wrapper">
+    <div id="signup-login-form-wrapper">     
+        <div id="login-form-container" style="display:none;">
+            <form id="login-form" class="prof-form">
+                <h2>Login</h2>
+                <div class="input-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="sign-in-username" name="username" placeholder="Enter your username">
+                </div>
+        
+                <div class="input-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="sign-in-password" name="password" placeholder="Enter your password">
+                </div>
+        
+                <button type="submit">Login</button>
+            </form>
+        </div>
+
         <div id="sign-up-form-container" style="display:none;">
-            <form id="sign-up-form">
+            <form id="sign-up-form" class="prof-form">
                 <h2>Create an Account</h2>
                 
                 <div class="input-group">
@@ -94,24 +111,6 @@
                 <div class="g-recaptcha" data-sitekey="6LepqQUrAAAAAB1rEuV0ZOcTjeNbXgCqUd4NtC9E"></div>
         
                 <button type="submit">Sign Up</button>
-            </form>
-        </div>
-        
-
-        <div id="login-form-container" style="display:none;">
-            <form id="login-form">
-                <h2>Login</h2>
-                <div class="input-group">
-                    <label for="username">Username:</label>
-                    <input type="text" id="sign-in-username" name="username" placeholder="Enter your username">
-                </div>
-        
-                <div class="input-group">
-                    <label for="password">Password:</label>
-                    <input type="password" id="sign-in-password" name="password" placeholder="Enter your password">
-                </div>
-        
-                <button type="submit">Login</button>
             </form>
         </div>
     </div>
