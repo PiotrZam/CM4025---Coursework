@@ -63,7 +63,7 @@ function clearUsername()
 
     // Add a click listener to the "Log in" text
     $('#user-status-text').on('click', function() {
-        window.location.href = 'login.html';  // Redirect to the login page
+        window.location.href = 'profile.html';  // Redirect to the login page
     });
 }
 
@@ -78,7 +78,7 @@ export function setUpLogoutLink() {
             type: 'POST',    // Change type to POST
             success: function () {
                 alert("You are now logged out")
-                window.location.href = 'login.html'; // Redirect to login page
+                window.location.href = 'profile.html'; // Redirect
             },
             error: function () {
                 alert('Failed to log out');

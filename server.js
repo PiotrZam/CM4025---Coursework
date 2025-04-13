@@ -377,6 +377,10 @@ app.get('/getPosts', async (req, res) => {
                 query._id = { $nin: readStories };
             }
 
+            // Additionally, don't return the stories written by the current user
+            query.authorID = { $ne: userId };
+            console.log("UserID: ", userId);
+
         }
 
         //genre filter
