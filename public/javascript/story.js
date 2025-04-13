@@ -1,12 +1,9 @@
 // Importing functions:
 import {checkLoggedIn, setUpLogoutLink, genres_enum, createPostElement, modifyPostAfterCreation, deleteStory, toggleAddCommentBox, toggleComments, addComment, getCurrentDate, generateCommentHTML, displayComments, rateStory, highlightStars, markAsRead} from './allPages.js'
 
-console.log(story)
-var myStory = story.replace(/^"|"$/g, '');
-console.log(myStory)
-
 // Story element passed from the server
-const passedStory = JSON.parse(myStory);
+const story = document.getElementById('story-data').textContent;
+const passedStory = JSON.parse(story);
 const postsWrapper = $("#posts-wrapper");
 
 $(document).ready(async function () {

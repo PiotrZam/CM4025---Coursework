@@ -134,12 +134,12 @@ export function createPostElement(post) {
         ${post.imageUrl ? `<img src="${post.imageUrl}" alt="Story Image" class="post-image">` : ''}
 
         ${showToggle ? `
-            <p class="contents-preview">${he.escape(post.content.slice(0, 300))}...</p>
-            <p class="contents-full" style="display: none;">${he.escape(post.content)}</p>
+            <pre class="contents-preview">${he.escape(post.content.slice(0, 300))}...</pre>
+            <pre class="contents-full" style="display: none;">${he.escape(post.content)}</pre>
             <div class="toggle-full-content" onclick="toggleContent(this)">
                 <i class="fas fa-chevron-down"></i>
             </div>
-            ` : `<p class="contents-full">${he.escape(post.content)}</p>
+            ` : `<pre class="contents-full">${he.escape(post.content)}</pre>
         `}
 
         <div class="reactions-container">
@@ -356,16 +356,11 @@ export function addComment(buttonElement) {
             console.log("Response...")
             console.log(response)
 
-            console.log("New Comment HTML...")
-            console.log(comment)
-
             commentsWrapper.prepend(comment);
 
             // increment comment count
             let theCount = parseInt($(commentsCount).text()) + 1 
             $(commentsCount).text(theCount);
-            //Clear the text area:
-            $(commentContent).val("");
         },
         error: function(xhr, status, error) {
             console.log("Error occured when adding a comment:")

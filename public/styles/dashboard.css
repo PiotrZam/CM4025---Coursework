@@ -168,6 +168,14 @@
     word-wrap: break-word; /* Ensure text wraps within the post container */
 }
 
+.post pre {
+    font-family: inherit;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    margin: 0; 
+  }
+
 /* Show full content toggle button */
 /* Wrapper to center the toggle button horizontally */
 .toggle-wrapper {
