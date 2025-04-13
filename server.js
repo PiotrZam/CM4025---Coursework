@@ -443,12 +443,20 @@ app.get('/getPosts', async (req, res) => {
                         author: st.author,
                         authorID: st.authorID,
                         totalRating: 0,
-                        storyCount: 0
+                        storyCount: 0,
+                        thisUserTotalRating: 0,
+                        thisUserStoryCount: 0
                     };
-                    }
+                }
                 
+                // add total story rating and total sory count for each author
                 authors[st.authorID].totalRating += averageRating;
                 authors[st.authorID].storyCount += 1;
+
+                // add this user's rating only
+                authors[st.authorID].thisUserTotalRating += thisUserRating;
+                if(thisUserRating > 0)
+                    authors[st.authorID].thisUserStoryCount += 1;
             }
 
             // Include URL to the story picture
@@ -483,11 +491,19 @@ app.get('/getPosts', async (req, res) => {
        {
             const author = authors[authorID];
             var averageAuthRating = 0;
+            var thisUserAverageAuthRating = 0;
+            
             if(author.storyCount > 0)
             {
                 averageAuthRating = author.totalRating / author.storyCount;
             }
             author.averageAuthRating = averageAuthRating;
+
+            if(author.thisUserStoryCount > 0)
+            {
+                thisUserAverageAuthRating = author.thisUserTotalRating / author.thisUserStoryCount;
+            }
+            author.thisUserAverageAuthRating = thisUserAverageAuthRating;
        }
         
         console.log("authors: ")
@@ -496,12 +512,20 @@ app.get('/getPosts', async (req, res) => {
         // Add author score to  story score:
         const updatedStories = stories.map(story => {
             const authorData = authors[story.authorID];
-            const authorAvgRating = Number(authorData ? authorData.averageAuthRating : 0);
+            var authorAvgRating = Number(authorData ? authorData.averageAuthRating : 0);
+            var thisUserAverageAuthRating = Number(authorData ? authorData.thisUserAverageAuthRating : 0);
           
+            // Author's average rating only matters if it's >= 3 (to prevent auhors with bad stories from being displayed at the top!)
+            if (authorAvgRating < 3)
+                authorAvgRating = 0;
+
+            if (thisUserAverageAuthRating < 3)
+                thisUserAverageAuthRating = 0;
+
             return {
               ...story,
-              // Author score has a impac factor of 0.2 when calculating story score
-              storyScore: Number(story.storyScore) + (authorAvgRating * 0.2) 
+              // Final story score is a combination of recency score, author's score and autor's score for the current user
+              storyScore: Number(story.storyScore) + (authorAvgRating * 0.3) + (thisUserAverageAuthRating * 0.4) 
             };
         });
 

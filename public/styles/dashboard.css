@@ -189,6 +189,15 @@
     color: #666;
 }
 
+.post-image {
+    width: 60%;
+    max-height: 400px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+
 /* Common styles for the public/private label */
 .public-status {
     display: inline-block;         /* Makes it inline-block to adjust with content */
