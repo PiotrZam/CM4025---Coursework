@@ -54,33 +54,6 @@
     </div>
 
     <div class="dashboard">
-        <button id="add-post-button" class="add-post-button">+</button>
-
-        <div id="post-form" class="post-form">
-            <form id="create-post-form" enctype="multipart/form-data">
-                <label for="post-title">Title:</label>
-                <input type="text" id="post-title" required>
-
-                <label for="post-content">Content:</label>
-                <textarea id="post-content" required></textarea>
-
-                <label for="post-genre">Genre:</label>
-                <select id="post-genre" required>
-                    <!-- Options will be dynamically added here -->
-                </select>
-
-                <label for="post-image">Upload Image:</label>
-                <input type="file" id="post-image" name="image" accept="image/*">
-
-                <label for="post-public">Make this post public:</label>
-                <input type="checkbox" id="post-public" checked>
-
-                <div class="g-recaptcha" data-sitekey="6LepqQUrAAAAAB1rEuV0ZOcTjeNbXgCqUd4NtC9E"></div>
-
-                <button type="submit">Post</button>
-                <button type="button" id="cancel-button">Cancel</button>
-            </form>
-        </div>
 
         <div id="posts-wrapper">
         </div>
