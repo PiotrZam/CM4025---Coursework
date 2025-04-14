@@ -810,7 +810,7 @@ app.post('/rateStory', async (req, res) => {
             const updatedStory = await dbo.collection("story").findOne({ _id: new ObjectId(storyId)});
 
             // Add the story to user's read stories
-            if (!user.readStories.includes(storyId.toString())) {
+            if (!user.readStories || !user.readStories.includes(storyId.toString())) {
                 console.log("Trying to add to read stories..")
 
                 await dbo.collection("users").updateOne(

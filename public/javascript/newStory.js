@@ -10,6 +10,14 @@ $(document).ready(async function () {
     await checkLoggedIn();
     setUpLogoutLink();
 
+    // Make the chexkbox for public/private stories disabled if the user is not logged in
+    var loggedIn = ($('#loggedUserName').val() ? true : false)
+    if(!loggedIn)
+    {
+        $('#post-public').prop('checked', true)
+        $('#post-public').prop('disabled', true);
+    }
+
     // populate genre dropdown in the add-story form
     populateGenres();
 
