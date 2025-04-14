@@ -152,17 +152,23 @@ function fetchPosts(readFilterOption="all", genresFilter="") {
         success: function (posts) {
             // Clear existing posts from the the wrapper
             postsWrapper.empty();
-
             console.log(posts)
 
-            // Add each post to the the wrapper
-            posts.forEach(function (post) {
-                var postHTML = createPostElement(post);
-                console.log(post.thisUserRating);
+            if(posts.length === 0) {
+                var noStoriesMsg = '<h2>No stories have been uploaded yet.</h2>'; 
+                postsWrapper.append(noStoriesMsg);
+            }
+            
+            else {
+                // Add each post to the the wrapper
+                posts.forEach(function (post) {
+                    var postHTML = createPostElement(post);
+                    console.log(post.thisUserRating);
 
-                modifyPostAfterCreation(post, postHTML);
-                postsWrapper.append(postHTML);
-            });
+                    modifyPostAfterCreation(post, postHTML);
+                    postsWrapper.append(postHTML);
+                });
+            }
         },
         error: function(xhr, status, error) {
             var errorString = `Error occured when trying to claim a story:\n${xhr.responseJSON.error || error}`;

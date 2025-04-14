@@ -15,72 +15,79 @@ $(document).ready(async function() {
         url: '/topStories', // Make sure this matches your API endpoint
         method: 'GET',
         success: function(data) {
-            data.forEach((story, index) => {
-                // Create the HTML for each story container
-                const topStoryContainer = $('<div>', { class: 'top-story-container' });
+            if(data.length === 0) {
+                var noStoriesMsg = '<h2>No stories have been uploaded yet.</h2>'; 
+                $('#top-stories-list').append(noStoriesMsg);
+            }
 
-                const storyIdHidden = `<input type="hidden" class="post-id" value="${story._id}">`
-                topStoryContainer.append(storyIdHidden);
+            else {
+                data.forEach((story, index) => {
+                    // Create the HTML for each story container
+                    const topStoryContainer = $('<div>', { class: 'top-story-container' });
 
-                // Ranking number
-                const rankingNo = $('<div>', { class: 'top-stories-rankingno' }).text(`#${index + 1}`);
-                topStoryContainer.append(rankingNo);
+                    const storyIdHidden = `<input type="hidden" class="post-id" value="${story._id}">`
+                    topStoryContainer.append(storyIdHidden);
 
-                // Rating stars
-                const ratingContainer = $('<div>', { class: 'top-stories-stars' });
-                const totalStars = 5;
-                const fullStars = Math.floor(story.averageRating);
-                const halfStars = Math.round(story.averageRating - fullStars);
+                    // Ranking number
+                    const rankingNo = $('<div>', { class: 'top-stories-rankingno' }).text(`#${index + 1}`);
+                    topStoryContainer.append(rankingNo);
 
-                // Add full stars
-                for (let i = 0; i < fullStars; i++) {
-                    ratingContainer.append($('<i>', { class: 'fas fa-star top-star filled' }));
-                }
+                    // Rating stars
+                    const ratingContainer = $('<div>', { class: 'top-stories-stars' });
+                    const totalStars = 5;
+                    const fullStars = Math.floor(story.averageRating);
+                    const halfStars = Math.round(story.averageRating - fullStars);
 
-                // Add half stars
-                if (halfStars > 0) {
-                    ratingContainer.append($('<i>', { class: 'fas fa-star-half-alt top-star filled' }));
-                }
+                    // Add full stars
+                    for (let i = 0; i < fullStars; i++) {
+                        ratingContainer.append($('<i>', { class: 'fas fa-star top-star filled' }));
+                    }
 
-                // Add empty stars
-                for (let i = fullStars + halfStars; i < totalStars; i++) {
-                    ratingContainer.append($('<i>', { class: 'fas fa-star top-star' }));
-                }
+                    // Add half stars
+                    if (halfStars > 0) {
+                        ratingContainer.append($('<i>', { class: 'fas fa-star-half-alt top-star filled' }));
+                    }
 
-                // Append the stars container to the story container
-                topStoryContainer.append(ratingContainer);
+                    // Add empty stars
+                    for (let i = fullStars + halfStars; i < totalStars; i++) {
+                        ratingContainer.append($('<i>', { class: 'fas fa-star top-star' }));
+                    }
 
-                // Title link element
-                const titleLink = $('<a>', {
-                    class: 'top-stories-title',
-                    href: `/getSingleStory?storyID=${story._id}`,
-                    text: story.title
+                    // Append the stars container to the story container
+                    topStoryContainer.append(ratingContainer);
+
+                    // Title link element
+                    const titleLink = $('<a>', {
+                        class: 'top-stories-title',
+                        href: `/getSingleStory?storyID=${story._id}`,
+                        text: story.title
+                    });
+                    topStoryContainer.append(titleLink);
+
+                    // Ranking details below the stars
+                    const ratingInfo = $('<div>', { class: 'top-stories-rating-info' })
+                        .html(`Avg: ${story.averageRating.toFixed(1)}<br/>${story.numRatings} Ratings`);
+                    topStoryContainer.append(ratingInfo);
+
+                    // Other details: genre, author, date
+                    const otherDetailsDiv = $('<div>', { class: 'top-stories-other-details' });
+
+                    // Genre below the title
+                    const genreDiv = $('<div>', { class: 'top-stories-genre' }).text(`Genre: ${story.genre}`);
+                    otherDetailsDiv.append(genreDiv);
+
+                    // Author and date below the title
+                    const authorDiv = $('<div>', { class: 'top-stories-author' }).text(`By ${story.author}`);
+                    const dateDiv = $('<div>', { class: 'top-stories-date' }).text(`Date: ${story.date}`);
+                    otherDetailsDiv.append(authorDiv);
+                    otherDetailsDiv.append(dateDiv);
+
+                    topStoryContainer.append(otherDetailsDiv);
+
+                    // Append the full story container to the main list
+                    $('#top-stories-list').append(topStoryContainer);
                 });
-                topStoryContainer.append(titleLink);
-
-                // Ranking details below the stars
-                const ratingInfo = $('<div>', { class: 'top-stories-rating-info' })
-                    .html(`Avg: ${story.averageRating.toFixed(1)}<br/>${story.numRatings} Ratings`);
-                topStoryContainer.append(ratingInfo);
-
-                // Other details: genre, author, date
-                const otherDetailsDiv = $('<div>', { class: 'top-stories-other-details' });
-
-                // Genre below the title
-                const genreDiv = $('<div>', { class: 'top-stories-genre' }).text(`Genre: ${story.genre}`);
-                otherDetailsDiv.append(genreDiv);
-
-                // Author and date below the title
-                const authorDiv = $('<div>', { class: 'top-stories-author' }).text(`By ${story.author}`);
-                const dateDiv = $('<div>', { class: 'top-stories-date' }).text(`Date: ${story.date}`);
-                otherDetailsDiv.append(authorDiv);
-                otherDetailsDiv.append(dateDiv);
-
-                topStoryContainer.append(otherDetailsDiv);
-
-                // Append the full story container to the main list
-                $('#top-stories-list').append(topStoryContainer);
-            });
+            }
         },
         error: function(xhr, status, error) {
             var errorString = `Error occured when trying to fetch stories:\n${xhr.responseJSON.error || error}`;
