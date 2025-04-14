@@ -7,6 +7,7 @@ const postsWrapper = $("#posts-wrapper");
 
 $(document).ready(async function () {
 
+    // Check login status & update it in UI
     await checkLoggedIn();
     setUpLogoutLink();
 
@@ -36,6 +37,7 @@ $(document).ready(async function () {
 // End of document.ready
 
 
+// Sets up the story filters on the main story dashboard: Read/Unread/All & Genre
 function setUpFilters() {
 
     // if user isn't logged in, don't display the "Story Read" filter
@@ -116,6 +118,8 @@ function setUpFilters() {
     });
 }
 
+
+// Used to populate the genre dropdown for the "genre" filter
 function populateGenreDropdown() {
     const dropdownOptions = $(".dropdown-options");  // Target the dropdown container
     dropdownOptions.empty();  // Clear any existing content
@@ -131,6 +135,7 @@ function populateGenreDropdown() {
     });
 }
 
+// Fetches posts on the main dashboard
 function fetchPosts(readFilterOption="all", genresFilter="") {
 
     var urlString = `/getPosts?readfilter=${readFilterOption}`

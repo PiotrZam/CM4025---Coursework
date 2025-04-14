@@ -2,13 +2,15 @@
 import {checkLoggedIn, setUpLogoutLink, genres_enum} from './allPages.js'
 
 $(document).ready(async function() {
+
+    // Check login status & update it in UI
     await checkLoggedIn();
     setUpLogoutLink();
 
     var loggedIn = ($('#loggedUserName').val() ? true : false)
     console.log(`Logged in: ${loggedIn}`)
 
-    // Set up toggle button
+    // Set up top-authors / top-readers toggle button
     $(".toggle-btn").on("click", function() {
         const currentValue = $('#top-users-current-filter').val()
         const newValue = $(this).data("state");

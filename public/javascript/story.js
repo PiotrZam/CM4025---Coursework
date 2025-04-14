@@ -12,6 +12,7 @@ $(document).ready(async function () {
     console.log("Story: ")
     console.log(passedStory)
 
+    // Check login status & update it in UI
     await checkLoggedIn();
     setUpLogoutLink();
 

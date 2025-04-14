@@ -6,9 +6,11 @@ const postForm = $("#post-form");
 
 $(document).ready(async function () {
 
+    // Check login status & update it in UI
     await checkLoggedIn();
     setUpLogoutLink();
 
+    // populate genre dropdown in the add-story form
     populateGenres();
 
     // bind sending-post to the submit button
@@ -73,6 +75,8 @@ $(document).ready(async function () {
 
 });
 
+
+// Populates the genre dropdown when adding a new story
 function populateGenres() {
 
     // Get the genre select element using jQuery

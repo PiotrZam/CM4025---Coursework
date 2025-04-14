@@ -22,6 +22,7 @@ const validator = require('validator');
 const { ObjectId } = require('mongodb');
 const { connectToDatabase, mongoClient } = require("./db"); 
 
+// Multer: used for uploading pictures
 // Set up storage engine for Multer
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -37,7 +38,7 @@ const upload = multer({
     limits: {fileSize: 5 * 1024 * 1024}
 });
 
-const RECAPTCHA_API_URL = 'https://www.google.com/recaptcha/api/siteverify'
+const RECAPTCHA_API_URL = process.env.RECAPTCHA_API_URL
 
 const app = express();
 const port = process.env.PORT;
@@ -245,7 +246,7 @@ app.post('/login', async (req, res) => {
     }
 });
 
-
+// Returns a single story for the "story" page
 app.get('/getSingleStory', async (req, res) => {
     var storyID = req.query.storyID || ''
 
@@ -333,6 +334,7 @@ app.get('/getSingleStory', async (req, res) => {
     }
 });
 
+// Returns multiple stories for the dashboard
 app.get('/getPosts', async (req, res) => {
     var readfilter = req.query.readfilter || 'all';
     var genre = req.query.genre || '';
@@ -542,6 +544,7 @@ app.get('/getPosts', async (req, res) => {
     }
 });
 
+// Add a story
 app.post('/addPost', upload.single('image'), async (req, res) => {
 
     const { title, content, genre, isPublic, recaptcha_token } = req.body;
@@ -686,6 +689,7 @@ app.post('/addPost', upload.single('image'), async (req, res) => {
     }
 });
 
+// Delete a story
 app.delete('/deleteStory/:id', async (req, res) => {
     const storyId = req.params.id;
 
@@ -729,10 +733,11 @@ app.delete('/deleteStory/:id', async (req, res) => {
     }
 });
 
-
+// Rate a story (and mark as read)
 app.post('/rateStory', async (req, res) => {
     var { storyId, rating } = req.body;
     var userId = 0;
+
     if (req.session && req.session.user)
     {
         userId = req.session.user.userID;
@@ -756,6 +761,8 @@ app.post('/rateStory', async (req, res) => {
             return res.status(404).json({ success: false, error: "Error. User not found." });
         }
 
+        console.log(user)
+
         // Convert string ID to MongoDB ObjectId
         const story = await dbo.collection("story").findOne({ _id: new ObjectId(storyId)});
 
@@ -763,7 +770,7 @@ app.post('/rateStory', async (req, res) => {
             return res.status(404).json({ success: false, error: "Story not found" });
         }
 
-        if(story.authorID = userId)
+        if(story.authorID === userId)
             return res.status(400).json({ success: false, error: "User cannot rate their own stories" });
 
         // If the ratings array doesn't exist, initialize it
@@ -780,16 +787,32 @@ app.post('/rateStory', async (req, res) => {
                 { _id: new ObjectId(storyId), "ratings.userId": userId },
                 { $set: { "ratings.$.rating": rating } }
             );
-            return res.status(200).json({ success: true, message: "Rating updated successfully." });
+            const updatedStory = await dbo.collection("story").findOne({ _id: new ObjectId(storyId)});
+
+            // Add the story to user's read stories
+            if (!user.readStories.includes(storyId.toString())) {
+                console.log("Trying to add to read stories..")
+
+                await dbo.collection("users").updateOne(
+                    { _id: new ObjectId(userId) },
+                    { $push: { readStories: storyId } }
+                );
+            }
+
+            console.log(`Updated rating for story with id: ${story._id}. New rating: ${rating}`)
+            return res.status(200).json(updatedStory);
         } else {
             // If the user hasn't rated yet, push the new rating
             await dbo.collection("story").updateOne(
                 { _id: new ObjectId(storyId) },
                 { $push: { ratings: { userId: userId, rating: rating } } }
             );
+            const updatedStory = await dbo.collection("story").findOne({ _id: new ObjectId(storyId)});
 
             // Add the story to user's read stories
             if (!user.readStories.includes(storyId.toString())) {
+                console.log("Trying to add to read stories..")
+
                 await dbo.collection("users").updateOne(
                     { _id: new ObjectId(userId) },
                     { $push: { readStories: storyId } }
@@ -797,7 +820,7 @@ app.post('/rateStory', async (req, res) => {
             }
 
             console.log(`Added a new rating of ${rating} for story with id: ${story._id}`)
-            res.status(200).json(story);
+            res.status(200).json(updatedStory);
         }
     } catch (err) {
         console.error("Error adding a rating:", err);
@@ -805,6 +828,7 @@ app.post('/rateStory', async (req, res) => {
     }
 });
 
+// Add comment under a story
 app.post('/addComment', async (req, res) => {
     var { postId, content } = req.body;
     var userId = 0;
@@ -870,6 +894,7 @@ app.post('/addComment', async (req, res) => {
     }
 });
 
+// Mark story as read/unread
 app.post('/updateReadStatus', async (req, res) => {
     const { storyId, isRead } = req.body;  // Get data from the request body
     var isReadBool = validator.toBoolean(isRead, 0)
@@ -948,6 +973,7 @@ app.post('/updateReadStatus', async (req, res) => {
     }
 });
 
+// Return top-rated stories
 app.get('/topStories', async (req, res) => {
     console.log("Requested top stories data...")
     const nrStories = 10;
@@ -982,6 +1008,7 @@ app.get('/topStories', async (req, res) => {
     }
 });
 
+// Return stories written by the requesting user
 app.get('/currentUsersStories', async (req, res) => {
     console.log("Requested current user's stories...")
 
@@ -1082,6 +1109,7 @@ app.get('/currentUsersStories', async (req, res) => {
     }
 });
 
+// Return top-rated authors 
 app.get('/topAuthors', async (req, res) => {
     console.log("Requested top ranked users...")
 
@@ -1163,6 +1191,7 @@ app.get('/topAuthors', async (req, res) => {
     }
 });
 
+// Return most active readers (based on nr of ratings given)
 app.get('/topReaders', async (req, res) => {
     console.log("Requested top ranked readers...")
 
@@ -1263,6 +1292,7 @@ app.get('/topReaders', async (req, res) => {
     }
 });
 
+// Claim a story written by an anonymous user
 app.post('/claimStory', async (req, res) => {
     var { storyId, userInput } = req.body;
 
@@ -1352,7 +1382,6 @@ app.post('/claimStory', async (req, res) => {
         res.status(500).json({ success: false, error: "Failed to claim a story" });
     }
 });
-
 
 // Graceful Shutdown (Close database Connection on Exit)
 process.on("SIGINT", async () => {

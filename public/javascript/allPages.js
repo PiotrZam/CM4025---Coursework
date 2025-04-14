@@ -1,4 +1,4 @@
-// Module containing functions used in other js files
+// This module contains functions & enums shared between multiple js files
 
 //#region Enums
 
@@ -20,6 +20,8 @@ export const genres_enum = [
 
 //#region login functions
 
+
+// A Function to check if the user is logged in. Called when a page (every page) is loaded
 export function checkLoggedIn()
 {
     return new Promise((resolve, reject) => {
@@ -47,6 +49,7 @@ export function checkLoggedIn()
     });
 }
 
+// Called after checking login status, if there IS a logged in user. Modifies user name & other login related fields in UI.
 function setUsername(username)
 {
     // User is logged in, display the username
@@ -64,6 +67,7 @@ function setUsername(username)
 
 }
 
+// Called after checking login status, if there ISN'T  a logged in user. Modifies user name & other login related fields in UI.
 function clearUsername()
 {
     // User is not logged in, display "Log in"
@@ -80,6 +84,7 @@ function clearUsername()
     });
 }
 
+// Called after checking login status, if there IS  a logged in user. Sets up a link to log out.
 export function setUpLogoutLink() {
     // add event handler to logout link
     $('#logout').click(function (event) {
@@ -106,12 +111,14 @@ export function setUpLogoutLink() {
 
 //#region Post Creation functions
 
+// Returns the current date in the specified format
 export function getCurrentDate() {
     const currentDate = new Date();
     const options = { month: "long", day: "numeric", year: "numeric" };
     return currentDate.toLocaleDateString("en-US", options);
 }
 
+// Generates HTML for posts from data returned by the server. Called on "dashboard" & "story" pages
 export function createPostElement(post) {
     let commentsCount = post.comments ? post.comments.length : 0;
     let numRatingsHTML = `<p class="num-rating">Ratings No: ${post.numRatings}</p>`;
@@ -190,6 +197,7 @@ export function createPostElement(post) {
     return postElement;
 }
 
+// Toggles (rolls/unrolls) post content for lengthy stories
 function toggleContent(button) {
     const preview = $(button).siblings('.contents-preview');
     const full = $(button).siblings('.contents-full');
@@ -206,7 +214,7 @@ function toggleContent(button) {
     }
 }
 
-
+// Called after createPostElement(). Modified the created post HTML: manages classes, binds events etc
 export function modifyPostAfterCreation(post, postHTML)
 {   
     // Display comments 
@@ -246,6 +254,8 @@ export function modifyPostAfterCreation(post, postHTML)
             seenStoryButton.remove();
 
         } else {
+            // User is not the author of the story:
+
             //Highlight stars if ratings was given
             const starsElement = postHTML.find('.stars').first();
             if(post.thisUserRating > 0)
@@ -256,6 +266,11 @@ export function modifyPostAfterCreation(post, postHTML)
                 highlightStars(starsHtml, post.thisUserRating);
             }
 
+            //Set the "Story Read" button
+            if(post.isRead)
+            {
+                seenStoryButton.addClass('read');
+            }
             
         }
     }
@@ -276,6 +291,7 @@ export function modifyPostAfterCreation(post, postHTML)
     }
 }
 
+// Deletes a story
 export function deleteStory(storyId) {
     $.ajax({
         url: `/deleteStory/${storyId}`,  
@@ -293,6 +309,7 @@ export function deleteStory(storyId) {
     });
 }
 
+// Makes the "Add Comment" box appear / disappear
 export function toggleAddCommentBox(buttonElement) {
     const postElement = $(buttonElement).closest('.post');
     const commentsWrapper = $(postElement).find('.comments-wrapper');
@@ -309,6 +326,7 @@ export function toggleAddCommentBox(buttonElement) {
     addCommentForm.slideToggle();
 }
 
+// Makes the comment list appear/disappear
 export function toggleComments(buttonElement) {
     const postElement = $(buttonElement).closest('.post');
     const commentsWrapper = $(postElement).find('.comments-section');
@@ -324,6 +342,7 @@ export function toggleComments(buttonElement) {
     });
 }
 
+// Used to add a comment
 export function addComment(buttonElement) {
     const postElement = $(buttonElement).closest('.post'); 
     const commentsWrapper = $(postElement).find('.comments-section');
@@ -370,6 +389,7 @@ export function addComment(buttonElement) {
     });
 }
 
+// Used to generate HTML for comments under a story from the data returned from the server. Called after createPostElement()
 export function generateCommentHTML(comment) {
     const date = new Date(comment.date)
     const formattedDate = `${String(date.getDate()).padStart(2, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}-${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
@@ -382,6 +402,7 @@ export function generateCommentHTML(comment) {
     return commentDiv;
 }
 
+// function calling generateCommentHTML() multiple times  to generate all the comments under a story
 export function displayComments(postElement, comments) {
     const commentsSection = postElement.find('.comments-section');
     commentsSection.empty(); // Clear previous comments to avoid duplication
@@ -392,6 +413,7 @@ export function displayComments(postElement, comments) {
     });
 }
 
+// fired when a user rates a story. Updates rating & marks the story as read
 export function rateStory(starElement) {
     var postElement = starElement.closest('.post');
     var storyId = postElement.querySelector('.post-id').value;
@@ -407,11 +429,13 @@ export function rateStory(starElement) {
     .then(response => response.json())
     .then(data => {
         // document.querySelector(".average-rating").innerText = `Average Rating: ${data.averageRating.toFixed(1)}`;
+        recreateRatings(postElement, data);
         highlightStars(starElement.parentNode, rating);
     })
     .catch(error => console.error("Error rating story:", error));
 }
 
+// Highlights the rating stars so that they reflect the new rating
 export function highlightStars(container, rating) {
     container.querySelectorAll("i").forEach(star => {
         star.classList.remove("fas");
@@ -422,6 +446,33 @@ export function highlightStars(container, rating) {
     });
 }
 
+// Function to update average rating and number of ratings in DOM after user has rated a story. Called from rateStory()
+export function recreateRatings(postElement, storyObject)
+{
+    const avgRatingEl = $(postElement).find('.average-rating');
+    var numRatingsEl = $(postElement).find('.num-rating');
+    const seenStoryBtn = $(postElement).find('.seen-story-btn');
+
+    const sumRatings = storyObject.ratings.reduce((sum, r) => sum + r.rating, 0);
+    const numRatingsVal = storyObject.ratings.length;
+
+    // Updte average rating
+    $(avgRatingEl).text(`Average Rating: ${Number(sumRatings / numRatingsVal).toFixed(1)}`)
+
+    // Update number of ratings
+    if(numRatingsEl.length)
+    {
+        $(numRatingsEl).text(`Ratings No: ${Number(numRatingsVal)}`)
+    } else {
+        numRatingsEl = $('<p>').addClass('num-rating').text(`Ratings No: ${Number(numRatingsVal)}`);
+        avgRatingEl.after(numRatingsEl);
+    }
+
+    // mark the story as read
+    $(seenStoryBtn).addClass("read");
+}
+
+// Marks the story as read after user has clicked the button
 export function markAsRead(button)
 {
     // Let the server know that user has marked/unmarked the story as read
@@ -453,6 +504,7 @@ export function markAsRead(button)
 
 //#endregion Post Creation Functions
 
+// Used to claim a story that was uploaded by an anonymous user
 export function claimStory(el) {
     const post = $(el).closest('.post');
     const storyId = $(post).find('.post-id').val();

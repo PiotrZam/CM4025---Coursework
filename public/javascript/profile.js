@@ -25,11 +25,13 @@ $(document).ready(async function() {
         }
     });
     
+   // bind buttons signup/sign-in/logout 
    bindButtons();
     
 });
 
 
+// Slightly modified version of setUsername() in allPages.js, used only on this page
 function setUsername(username) 
     {
         $('#user-status-text').text(username);
@@ -49,6 +51,7 @@ function setUsername(username)
         $('#user-status-text').off('click'); // Remove the click event handler for "Log in"
 }
 
+// Slightly modified version of clearUsername() in allPages.js, used only on this page
 function clearUsername()
     {
         $('#user-status-text').text('Log in');
@@ -67,6 +70,7 @@ function clearUsername()
         });
 }
 
+// Bind submit buttons for sign-up / sign-in forms & logout
 function bindButtons() {
     // add event handler to logout link
     $('#logout').click(function (event) {
@@ -165,6 +169,7 @@ function bindButtons() {
     });
 }
 
+// Fetches from user data: user stats & stories displayed on "Profile" page. Also generates HTML from that data.
 function getUserContent() {
     // Get user's  stories and stats
     $.ajax({

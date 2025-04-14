@@ -2,12 +2,15 @@
 import {checkLoggedIn, setUpLogoutLink, genres_enum} from './allPages.js'
 
 $(document).ready(async function() {
+
+    // Check login status & update it in UI
     await checkLoggedIn();
     setUpLogoutLink();
 
     var loggedIn = ($('#loggedUserName').val() ? true : false)
     console.log(`Logged in: ${loggedIn}`)
 
+    // Fetch top-rated stories && generate HTML for them
     $.ajax({
         url: '/topStories', // Make sure this matches your API endpoint
         method: 'GET',
@@ -87,8 +90,8 @@ $(document).ready(async function() {
     });
 });
 
-///////////
-// Function to generate the HTML for the ranking
+
+// Function to generate the HTML for the story ranking
 function generateStoryRanking(stories) {
     const storyRankingContainer = $('#story-ranking');
     storyRankingContainer.empty();  // Clear any previous content
