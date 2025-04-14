@@ -129,8 +129,6 @@ app.get("/checkLoggedIn", (req, res) => {
 
 // Backend: Express Route for Logging Out
 app.post("/logout", (req, res) => {
-    console.log(req)
-    console.log(req.session)
     req.session.destroy((err) => {
         if (err) {
             return res.status(500).json({ error: "Failed to log out" });
@@ -143,7 +141,8 @@ app.post("/logout", (req, res) => {
 app.post('/signUp', async (req, res) => {
     const { username, password, recaptchaResponse } = req.body;
 
-    console.log(req.body)
+    console.log("New user signed up:")
+    console.log(username)
 
     //#region Input validation
     if (!username || !password) {
@@ -324,8 +323,6 @@ app.get('/getSingleStory', async (req, res) => {
         {
             story.isRead = true;
         } 
-
-        console.log(story)
         
         res.render('story', { story });
     } catch (err) {
@@ -338,9 +335,6 @@ app.get('/getSingleStory', async (req, res) => {
 app.get('/getPosts', async (req, res) => {
     var readfilter = req.query.readfilter || 'all';
     var genre = req.query.genre || '';
-
-    console.log("readfilter: " + readfilter)
-    console.log("genre: " + genre)
 
     var userId = 0;
     var username = "";
@@ -387,7 +381,6 @@ app.get('/getPosts', async (req, res) => {
 
             // Additionally, don't return the stories written by the current user
             query.authorID = { $ne: userId };
-            console.log("UserID: ", userId);
 
         }
 
@@ -395,8 +388,6 @@ app.get('/getPosts', async (req, res) => {
         if(genre)
         {
             const genreArray = genre.split(',').map(g => g.trim());
-            console.log("Genre Array:")
-            console.log(genreArray)
 
             query.genre = { $in: genreArray }
         }
@@ -509,9 +500,6 @@ app.get('/getPosts', async (req, res) => {
             }
             author.thisUserAverageAuthRating = thisUserAverageAuthRating;
        }
-        
-        console.log("authors: ")
-        console.log(authors)
 
         // Add author score to  story score:
         const updatedStories = stories.map(story => {
@@ -535,7 +523,6 @@ app.get('/getPosts', async (req, res) => {
 
         // Sprt stories based on story score before returning
         updatedStories.sort((a, b) => b.storyScore - a.storyScore);
-        console.log(updatedStories)
 
         res.status(200).json(updatedStories); // Send the stories as a JSON response
     } catch (err) {
@@ -550,8 +537,7 @@ app.post('/addPost', upload.single('image'), async (req, res) => {
     const { title, content, genre, isPublic, recaptcha_token } = req.body;
     const wordLimit = 500;
 
-    console.log("\nNew Request:")
-    console.log(req.body)
+    console.log("Received a request to add a new story....")
 
     var userId = 0;
     var authorName = "Anonymous";
@@ -603,8 +589,6 @@ app.post('/addPost', upload.single('image'), async (req, res) => {
         res.status(500).send('Error during reCAPTCHA verification');
     }
 
-    console.log(`isPublic:`)
-    console.log(isPublic)
     // validate isPublic
     if(!userId)
     {
@@ -612,9 +596,6 @@ app.post('/addPost', upload.single('image'), async (req, res) => {
     } else {
         validatedIsPublic = validator.toBoolean(isPublic, 0)
     }
-
-    console.log(`validated isPublic:`)
-    console.log(validatedIsPublic)
 
     //#endregion validation
 
@@ -667,8 +648,7 @@ app.post('/addPost', upload.single('image'), async (req, res) => {
                 newStory.isOwnStory = false;
             }
 
-            console.log(`Inserted a new story with ID of ${result.insertedId} `)
-            console.log(newStory)    
+            console.log(`Inserted a new story with ID of ${result.insertedId} `)  
         }
         else {
             console.log(`Failed to insert a new story...`);
@@ -760,8 +740,6 @@ app.post('/rateStory', async (req, res) => {
         if (!user) {
             return res.status(404).json({ success: false, error: "Error. User not found." });
         }
-
-        console.log(user)
 
         // Convert string ID to MongoDB ObjectId
         const story = await dbo.collection("story").findOne({ _id: new ObjectId(storyId)});
@@ -868,8 +846,6 @@ app.post('/addComment', async (req, res) => {
 
         // get the story
         const story = await dbo.collection("story").findOne({ _id: new ObjectId(postId)});
-
-        console.log(story);
 
         if (!story) {
             return res.status(404).json({ success: false, error: "Story not found" });
@@ -1100,8 +1076,6 @@ app.get('/currentUsersStories', async (req, res) => {
             stories: userStories
         }
 
-        console.log(output);
-
         res.json(output);
     } catch (error) {
         console.error("Error fetching user rating:", error);
@@ -1158,9 +1132,6 @@ app.get('/topAuthors', async (req, res) => {
         .project({ _id: 1, username: 1 })
         .toArray();
 
-        console.log("top user")
-        console.log(topUsers)
-
         topUsers.forEach((au) => {
             var user = users.find(u => u._id.toString() === au._id.toString());
 
@@ -1175,8 +1146,6 @@ app.get('/topAuthors', async (req, res) => {
             ...user,
             rank: index + 1 
         }));
-
-        console.log(topUsers)
 
         // Get only the users that have username
         topUsers = topUsers.filter(u => (u.username) );
@@ -1224,9 +1193,6 @@ app.get('/topReaders', async (req, res) => {
 
         // Testing - filter out fake IDs
         topReaders = topReaders.filter(r => r._id.toString().length > 6)
-
-        console.log("Top Readers: ")
-        console.log(topReaders)
 
         var readersIDs = topReaders.map(reader => new ObjectId(reader._id));
         
@@ -1333,8 +1299,6 @@ app.post('/claimStory', async (req, res) => {
 
         // get the story
         const story = await dbo.collection("story").findOne({ _id: new ObjectId(storyId)});
-
-        console.log(story);
 
         if (!story) {
             return res.status(404).json({ success: false, error: "Story not found" });
