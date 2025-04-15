@@ -1,11 +1,7 @@
-# CM4025 Enterprise Web Systems
-Coursework submission for CM4025: Enterprise Web Systems
+# Whispered Words
+Submission for CM4025 Enterprise Web Systems by Piotr Zambrzycki
 
-To run the server:
-1. Install node.js
-2. Install Visual Studio Code
-3. In VS Code click View -> Terminal
-4. In the Terminal make sure you're in the project directory (you should be already)
-5. Install project dependencies: type 'npm install'
-6. run the server: type 'node server.js'
-7. Go to 'http://localhost:3000/' in your browser
+A simple Webapp where users can upload and read short stories.
+
+Website URL: 	(Hosted on AWS)
+http://13.61.7.100:3000/
