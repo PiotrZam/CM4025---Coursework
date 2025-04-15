@@ -65,6 +65,9 @@ $(document).ready(async function () {
                 console.log("Added a post!")
                 var confirmationText = "Added a story!"
 
+                // reset form fields
+                resetFormAfterSubmission();
+
                 if(post.claimCode)
                 {
                     confirmationText += `\n\nYou can use the following code to claim the story as a logged in user in the future:`
@@ -83,6 +86,17 @@ $(document).ready(async function () {
 
 });
 
+
+function resetFormAfterSubmission() {
+    $("#post-title").val('');
+    $("#post-content").val('');
+    $("#post-genre").val('');
+    $("#post-image").val(null); // Clear file input
+    $("#post-public").prop('checked', true);
+
+    // Reset reCAPTCHA
+    grecaptcha.reset();
+}
 
 // Populates the genre dropdown when adding a new story
 function populateGenres() {
